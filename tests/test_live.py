@@ -22,8 +22,9 @@ def client():
 
 
 def test_catalog(client):
-    operations = client.catalog.list()
-    assert any(op["id"] == "google_news/articles/search" for op in operations)
+    catalog = client.catalog.list()
+    assert catalog["object"] == "list"
+    assert any(op["id"] == "google_news/articles/search" for op in catalog["data"])
 
 
 def test_balance(client):
