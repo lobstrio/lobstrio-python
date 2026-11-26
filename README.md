@@ -1,6 +1,6 @@
 # lobstrio
 
-The official Python SDK and CLI for [lobstr.io](https://www.lobstr.io)'s API v2: structured data from
+The official Python SDK and CLI for [lobstr.io](https://www.lobstr.io?utm_source=lobstrio-python&utm_medium=readme)'s API v2: structured data from
 websites (Google Maps places and their reviews, Google News, Airbnb, realtor.com, X and more), one call
 per page, the same fields every time.
 
@@ -198,7 +198,7 @@ too: [lobstrio/examples](https://github.com/lobstrio/examples).
 
 ## Links
 
-- Docs: https://docs.lobstr.io
+- Docs: https://docs.lobstr.io?utm_source=lobstrio-python&utm_medium=readme
 - Every operation: https://api.lobstr.io/v2/catalog.md
 - MCP server: https://github.com/lobstrio/lobstr-mcp
 - Changelog: [CHANGELOG.md](CHANGELOG.md)
