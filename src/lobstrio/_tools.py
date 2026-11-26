@@ -13,11 +13,10 @@ import json
 import math
 import re
 import threading
-from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Set, Tuple, Union
+from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Set, Tuple
 
-from ._base import normalize_fields, split_operation
+from ._base import split_operation
 from ._client import AsyncLobstr, Lobstr
-from ._errors import LobstrError
 
 __all__ = ["Tool", "LobstrTools", "FIND_OPERATIONS", "GET_OPERATION", "RUN_OPERATION"]
 
@@ -32,9 +31,8 @@ QUERY = (
     "Empty: every operation, one line each."
 )
 OPTIONS = (
-    "The operation's input, its options as lobstr_get_operation gives them (`input`; those in "
-    '`required` are required): {"query": "bakeries in Austin, TX"}. For the next page, the '
-    "answer's `next` options, as they are."
+    "The operation's input, its options as lobstr_get_operation lists them in `input`: "
+    '{"query": "bakeries in Austin, TX"}. For the next page, the answer\'s `next` options, as they are.'
 )
 FIELDS = (
     'Only these record fields, by path ("name", "address.full"); object, id and position always '
@@ -42,25 +40,35 @@ FIELDS = (
 )
 LIMIT = "Only the first N records of the page (1 to 1000), for a search or a list; the call costs the same."
 
+# The same words as the Node SDK's tools (lobstrio-node, src/agent-tools.ts).
 FIND_DESCRIPTION = (
-    "Find the operations of lobstr.io that return the data you need, from what you would ask in "
-    'words ("reviews of a restaurant on google maps", "places near a point"): the few that fit '
-    "best, each with its id (source/resource/verb), its title, what it returns and its price per "
-    "call. lobstr_get_operation gives one's options and record fields. An empty query lists every "
-    "operation in one line."
+    'Find the operations that return the data you need, from what you would ask in words ("reviews of a '
+    'restaurant on google maps", "places near a point"): the few that fit best, each with its id '
+    "(source/resource/verb), its title, what it returns and its price per call; lobstr_get_operation has "
+    "its options and the fields of its records. An empty query lists every operation in one line."
 )
 GET_DESCRIPTION = (
-    'Everything needed to run one operation, by its id from lobstr_find_operations ("google_maps/'
-    'reviews/list"): when to use it, its options (`input`, a JSON schema, with their defaults), the '
-    "fields of its records (the paths `fields` takes), its price per call and its pagination."
+    'Everything about one operation, by its id from lobstr_find_operations ("google_maps/reviews/list"): '
+    "when to use it, its options (`input`, a JSON schema: their types, their defaults, those `required`), "
+    'every field of its records (`record_fields`, the paths `fields` takes: "seller (name, phones)" is '
+    "seller.name and seller.phones), its price per call and its pagination (`page_size`, the records a "
+    "call returns)."
 )
-RUN_DESCRIPTION = """Run one lobstr.io operation and get one page of records in `results`, with `count`, `cost` (in credits), `has_more` and `next`. `options` is the operation's input (see lobstr_get_operation).
-
-`fields`: the record fields you need, by path ("name", "rating", "phone", "address.full"); `object`, `id` and `position` always come. Ask only for what you need: every field of a full page is large (20 places with all their fields are about 70,000 characters, more than you may be able to read in one answer), the same page with four fields is a few thousand.
-
-`limit`: only the first N records of the page, for a search or a list; the call costs the same.
-
-One call is one page (20 places, 20 reviews). For more, call lobstr_run_operation again with the answer's `next` as it is (its operation, options, fields and limit) until you have enough or `next` is null: 50 places are 3 calls. Each call costs its operation's credits; a failed call is free."""
+RUN_DESCRIPTION = (
+    "Run one operation (POST /v2/run) and get one page of records in `results`, with `count`, `cost`, "
+    "`has_more` and `next`. `options` is the operation's input (see lobstr_find_operations or "
+    "lobstr_get_operation).\n\n"
+    '`fields`: the record fields you need, by path ("name", "rating", "phone", "address.full"); `object`, '
+    "`id` and `position` always come. Ask only for what you need: every field of a full page is large (20 "
+    "places with all their fields are about 70,000 characters, more than you may be able to read in one "
+    "answer), the same page with four fields is a few thousand.\n\n"
+    "`limit`: only the first N records of the page, for a search or a list; the call costs the same. With "
+    "`fields`, it keeps a large page readable: 100 Google News articles with four fields are about 50,000 "
+    "characters, with `limit` 20 a fifth of it.\n\n"
+    "One call is one page (`pagination.page_size` in lobstr_get_operation: 20 places, 20 reviews). For more, "
+    "call lobstr_run_operation again with the answer's `next` as it is (its operation, options, fields and "
+    "limit) until you have enough or `next` is null: 50 places are 3 calls. Each call costs its credits."
+)
 
 FIND_SCHEMA: Dict[str, Any] = {
     "type": "object",
@@ -88,7 +96,7 @@ RUN_SCHEMA: Dict[str, Any] = {
     "type": "object",
     "properties": {
         "operation": {"type": "string", "description": OPERATION_ID},
-        "options": {"type": "object", "description": OPTIONS},
+        "options": {"type": "object", "description": OPTIONS, "additionalProperties": True},
         "fields": FIELDS_SCHEMA,
         "limit": LIMIT_SCHEMA,
     },
@@ -193,26 +201,42 @@ def record_fields(record: Mapping[str, Any]) -> List[str]:
 
 
 def is_list(contract: Mapping[str, Any]) -> bool:
-    """A search or a list (it takes ``limit``), not an operation that answers one record."""
-    pagination = contract.get("pagination") or {}
-    return (pagination.get("page_size") or 0) > 1
+    """A search or a list, whose page ``limit`` cuts; not an operation that answers one record."""
+    pagination = contract.get("pagination")
+    if not pagination:
+        return False
+    return pagination.get("style") != "none" or (pagination.get("page_size") or 1) > 1
 
 
 def error_text(err: Exception) -> str:
-    """An error as the agent reads it: the API's error object, its message and doc_url first."""
-    if isinstance(err, LobstrError):
-        fields = {
-            "message": err.message,
-            "doc_url": err.doc_url,
-            "type": err.type,
-            "code": err.code,
-            "param": err.param,
-            "retryable": err.retryable,
-            "retry_after": err.retry_after,
-            "request_id": err.request_id,
-        }
-        return compact({"error": {k: v for k, v in fields.items() if v is not None}})
-    return compact({"error": {"message": str(err)}})
+    """An error as the agent reads it, never raised: the API's answer as it is
+    (``{"error": {...}}``, its message and doc_url), or the SDK's own error in the same shape."""
+    body = getattr(err, "body", None)
+    if isinstance(body, dict) and isinstance(body.get("error"), dict):
+        return compact(body)
+    error: Dict[str, Any] = {}
+    if isinstance(getattr(err, "type", None), str):
+        error["type"] = err.type  # type: ignore[attr-defined]
+    if isinstance(getattr(err, "code", None), str):
+        error["code"] = err.code  # type: ignore[attr-defined]
+    error["message"] = getattr(err, "message", None) or str(err)
+    if isinstance(getattr(err, "doc_url", None), str):
+        error["doc_url"] = err.doc_url  # type: ignore[attr-defined]
+    return compact({"error": error})
+
+
+def _strings(value: Any) -> Optional[List[str]]:
+    """``fields`` as the agent gave it: a non-empty list, else none."""
+    if isinstance(value, (list, tuple)) and value:
+        return [str(item) for item in value]
+    return None
+
+
+def _count(value: Any) -> Optional[int]:
+    """``limit`` as the agent gave it: a positive number, else none."""
+    if isinstance(value, (int, float)) and not isinstance(value, bool) and value > 0:
+        return int(value)
+    return None
 
 
 class Tool:
@@ -284,8 +308,9 @@ class LobstrTools:
         """``lobstr_find_operations``: the operations that fit the query, compact JSON."""
         try:
             every = self.catalog()
-        except LobstrError as err:
+        except Exception as err:  # the agent reads it; its loop goes on
             return error_text(err)
+        query = query if isinstance(query, str) else ""
         if not _words(query):
             return compact(
                 {
@@ -318,8 +343,8 @@ class LobstrTools:
     def get_operation(self, operation: str) -> str:
         """``lobstr_get_operation``: one operation's contract, compact JSON."""
         try:
-            contract = self.contract(operation)
-        except (LobstrError, ValueError, TypeError) as err:
+            contract = self.contract(str(operation or ""))
+        except Exception as err:  # the agent reads it; its loop goes on
             return error_text(err)
         return compact(
             {
@@ -338,30 +363,26 @@ class LobstrTools:
         self,
         operation: str,
         options: Optional[Mapping[str, Any]] = None,
-        fields: Union[None, str, Sequence[str]] = None,
+        fields: Optional[Sequence[str]] = None,
         limit: Optional[int] = None,
     ) -> str:
         """``lobstr_run_operation``: one call, one page, compact JSON; ``next`` in this tool's
         own arguments."""
-        return self._run(operation, options, fields, limit, own_tool=False)
+        options = dict(options) if isinstance(options, Mapping) else {}
+        return self._run(operation, options, _strings(fields), _count(limit), own_tool=False)
 
     def _run(
         self,
         operation: str,
-        options: Optional[Mapping[str, Any]],
-        fields: Union[None, str, Sequence[str]],
+        options: Dict[str, Any],
+        fields: Optional[List[str]],
         limit: Optional[int],
         *,
         own_tool: bool,
     ) -> str:
         try:
-            run = self.client.run(
-                operation,
-                dict(options or {}),
-                fields=normalize_fields(fields) or None,
-                limit=limit or None,
-            )
-        except (LobstrError, ValueError, TypeError) as err:
+            run = self.client.run(str(operation or "").strip(), options, fields=fields, limit=limit)
+        except Exception as err:  # the agent reads it; its loop goes on
             return error_text(err)
         return compact(
             {
@@ -385,16 +406,22 @@ class LobstrTools:
         parameters = copy.deepcopy(contract.get("input") or {"type": "object", "properties": {}})
         parameters.setdefault("type", "object")
         properties = parameters.setdefault("properties", {})
-        properties["fields"] = copy.deepcopy(FIELDS_SCHEMA)
-        if listed:
+        own = set(properties)  # an option of the operation's own keeps its name
+        if "fields" not in own:
+            properties["fields"] = copy.deepcopy(FIELDS_SCHEMA)
+        if listed and "limit" not in own:
             properties["limit"] = copy.deepcopy(LIMIT_SCHEMA)
         description = "\n\n".join(
             part for part in (contract.get("summary"), contract.get("use_when")) if part
         )
 
         def run(**kwargs: Any) -> str:
-            fields = kwargs.pop("fields", None)
-            limit = kwargs.pop("limit", None) if listed else None
+            fields = None if "fields" in own else _strings(kwargs.pop("fields", None))
+            limit = None
+            if "limit" not in own:
+                limit = _count(kwargs.pop("limit", None)) if listed else None
+                kwargs.pop("limit", None)
+            # An argument left out comes as None from some frameworks (CrewAI): not an option.
             options = {k: v for k, v in kwargs.items() if v is not None}
             return self._run(op_id, options, fields, limit, own_tool=True)
 

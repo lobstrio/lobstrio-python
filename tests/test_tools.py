@@ -4,6 +4,7 @@ import json
 import subprocess
 import sys
 
+import httpx
 import pytest
 
 from _catalog import CONTRACTS, api, paths
@@ -15,6 +16,7 @@ from lobstrio._tools import (
     RUN_OPERATION,
     LobstrTools,
     compact,
+    is_list,
     ranked,
 )
 
@@ -182,24 +184,45 @@ def test_run_operation_without_fields_or_limit_and_the_last_page():
     assert answer["next"] is None and answer["has_more"] is False
 
 
-def test_run_operation_errors_come_back_as_text_never_raised():
+def test_an_api_error_comes_back_as_the_apis_answer_never_raised():
     mock = api(error(402, "insufficient_credits", "billing_error"))
-    tools = LobstrTools(client(mock))
-    answer = json.loads(tools.run_operation("google_maps/places/search", {"query": "x"}))
+    answer = json.loads(
+        LobstrTools(client(mock)).run_operation("google_maps/places/search", {"query": "x"})
+    )
     assert answer == {
         "error": {
-            "message": "The message of insufficient_credits.",
-            "doc_url": "https://docs.lobstr.io/errors#insufficient_credits",
             "type": "billing_error",
             "code": "insufficient_credits",
-            "retryable": False,
+            "message": "The message of insufficient_credits.",
+            "param": None,
+            "doc_url": "https://docs.lobstr.io/errors#insufficient_credits",
             "request_id": "req_insufficient_credits",
+            "retryable": False,
         }
     }
+
+
+def test_an_sdk_error_comes_back_in_the_same_shape():
+    mock = api(httpx.ConnectError("refused"))
+    tools = LobstrTools(client(mock, max_retries=0))
+    lost = json.loads(tools.run_operation("google_news/articles/search", {"query": "x"}))
+    assert lost["error"]["type"] == "api_error"
+    assert lost["error"]["code"] == "connection_error"
+    assert lost["error"]["message"].startswith("Could not reach the API")
     wrong = json.loads(tools.run_operation("places/search", {"query": "x"}))
+    assert list(wrong["error"]) == ["message"]
     assert "source/resource/verb" in wrong["error"]["message"]
-    not_a_dict = json.loads(tools.run_operation("google_news/articles/search", "lobstr"))  # type: ignore[arg-type]
-    assert "error" in not_a_dict
+
+
+def test_arguments_an_agent_got_wrong_are_left_out():
+    mock = api(ok(envelope("google_news/articles/search")))
+    tools = LobstrTools(client(mock))
+    tools.run_operation("google_news/articles/search", "lobstr", fields="title", limit=0)  # type: ignore[arg-type]
+    assert mock.bodies()[-1] == {
+        "source": "google_news",
+        "operation": "articles/search",
+        "options": {},
+    }
 
 
 def test_the_sdk_retries_underneath_with_the_same_key():
@@ -259,6 +282,32 @@ def test_a_tool_per_operation_runs_and_gives_next_in_its_own_arguments():
         "fields": ["name", "phone"],
         "limit": 5,
     }
+
+
+def test_a_get_tool_drops_a_limit_it_does_not_take():
+    mock = api(ok(envelope("websites/contacts/get")))
+    contacts = LobstrTools(client(mock), ["websites/contacts/get"]).tools()[3]
+    answer = json.loads(contacts(website="https://example-dentist.com", limit=3, max_pages=None))
+    assert answer["next"] is None
+    assert mock.bodies()[-1] == {
+        "source": "websites",
+        "operation": "contacts/get",
+        "options": {"website": "https://example-dentist.com"},
+    }
+
+
+@pytest.mark.parametrize(
+    "pagination, listed",
+    [
+        (None, False),
+        ({"style": "none", "page_size": 1}, False),
+        ({"style": "none", "page_size": 100}, True),
+        ({"style": "cursor", "page_size": 20}, True),
+        ({"style": "page", "page_size": 42}, True),
+    ],
+)
+def test_a_list_is_an_operation_that_answers_pages(pagination, listed):
+    assert is_list({"pagination": pagination}) is listed
 
 
 def test_contracts_are_read_once():
