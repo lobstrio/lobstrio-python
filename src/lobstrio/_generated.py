@@ -534,6 +534,21 @@ __all__ = [
     "SelogerListingsSearchRecordPrice",
     "SelogerListingsSearchRecordSeller",
     "SelogerListingsSearchRecordSellerPhonesItem",
+    "TripadvisorReviewsListOptions",
+    "TripadvisorReviewsListOptionsSort",
+    "TripadvisorReviewsListOptionsTravelerTypesItem",
+    "TripadvisorReviewsListRecord",
+    "TripadvisorReviewsListRecordAspectsItem",
+    "TripadvisorReviewsListRecordPartner",
+    "TripadvisorReviewsListRecordPhotosItem",
+    "TripadvisorReviewsListRecordPlace",
+    "TripadvisorReviewsListRecordRating",
+    "TripadvisorReviewsListRecordResponse",
+    "TripadvisorReviewsListRecordResponseAuthor",
+    "TripadvisorReviewsListRecordReviewer",
+    "TripadvisorReviewsListRecordReviewerHometown",
+    "TripadvisorReviewsListRecordTranslation",
+    "TripadvisorReviewsListRecordVisit",
     "WebsitesContactsGetOptions",
     "WebsitesContactsGetRecord",
     "WebsitesContactsGetRecordEmailsItem",
@@ -685,7 +700,7 @@ __all__ = [
     "OPERATIONS",
 ]
 
-#: Every operation this module knows (40), as ``source/resource/verb``.
+#: Every operation this module knows (41), as ``source/resource/verb``.
 OPERATIONS: Tuple[str, ...] = (
     "airbnb/homes/get",
     "airbnb/homes/search",
@@ -717,6 +732,7 @@ OPERATIONS: Tuple[str, ...] = (
     "sales_navigator/leads/search",
     "seloger/listings/get",
     "seloger/listings/search",
+    "tripadvisor/reviews/list",
     "websites/contacts/get",
     "x/bookmarks/list",
     "x/followers/list",
@@ -976,7 +992,7 @@ class AirbnbHomesGetRecordLocation(TypedDict, total=False):
     """Where the home is, as the page shows it."""
 
     text: Optional[str]
-    """Paris, Île-de-France, France."""
+    """Austin, Texas, United States."""
     city: Optional[str]
     country_code: Optional[str]
     """ISO 3166-1 alpha-2."""
@@ -1337,7 +1353,7 @@ class AirbnbHomesGetRecord(TypedDict):
     room_type: Optional[str]
     """Airbnb's classic room type: Entire home/apt, Private room, Shared room, Hotel room."""
     summary: Optional[str]
-    """The line over the details: Entire rental unit in Paris, France."""
+    """The line over the details: Entire rental unit in Austin, Texas, United States."""
     details: List[str]
     """The page's line of numbers, in `locale`: 6 guests, 2 bedrooms, 2 beds, 1 bath (6 apartments,
     for a property).
@@ -2901,7 +2917,7 @@ class GoogleLensMatchesSearchOptions(_GoogleLensMatchesSearchOptionsRequired, to
     """
     country: str
     """The country whose stores and prices Lens lists, as Google's `gl` (ISO 3166-1 alpha-2, lower
-    case): with fr, French stores in euros. Default: "us". Examples: "us".
+    case): with gb, British stores in pounds. Default: "us". Examples: "us".
     """
 
 
@@ -2911,14 +2927,14 @@ class GoogleLensMatchesSearchRecordSource(TypedDict):
     name: Optional[str]
     """Its name as Lens writes it: Amazon, Maisons du Monde."""
     domain: Optional[str]
-    """Its host: www.amazon.fr. Null for an exact match whose url is Google's redirect."""
+    """Its host: www.amazon.com. Null for an exact match whose url is Google's redirect."""
     icon_url: Optional[str]
     """Its icon as Lens shows it (often the image itself, data:...)."""
 
 
 class GoogleLensMatchesSearchRecordPrice(TypedDict):
     """The price Lens shows for the page (a store selling it): `amount`, `currency` (ISO 4217) and
-    `text` as Google wrote it ("1 175 €*": * is Google's "check the site"); null otherwise.
+    `text` as Google wrote it ("$1,175.00*": * is Google's "check the site"); null otherwise.
     """
 
     amount: Optional[float]
@@ -2982,7 +2998,7 @@ class GoogleLensMatchesSearchRecord(TypedDict):
     """The site the page is on."""
     price: Optional[GoogleLensMatchesSearchRecordPrice]
     """The price Lens shows for the page (a store selling it): `amount`, `currency` (ISO 4217) and
-    `text` as Google wrote it ("1 175 €*": * is Google's "check the site"); null otherwise.
+    `text` as Google wrote it ("$1,175.00*": * is Google's "check the site"); null otherwise.
     """
     in_stock: Optional[bool]
     """true when Lens says it is in stock, false when out of stock, null when it says neither."""
@@ -3012,10 +3028,10 @@ class _GoogleMapsPlacesGetOptionsRequired(TypedDict):
     """The place, however you know it: its Google place id (ChIJ..., a search's `id`), its cid
     (`ids.cid`), its feature id (`ids.feature_id`, 0x...:0x...), the link of its page on Google
     Maps as the browser shows it (a short maps.app.goo.gl link is not taken: open it and copy
-    the page's link), or its name with its city as you would search it in Google Maps ("Le Vieux
-    Lyon, Lyon"), for the place Google opens. A name Google answers with several places answers
-    `ambiguous_query` with the first ones (free): send the one you mean. Examples:
-    "ChIJ39Y-tdg1fYcRQcZcBb499do", "15777584755905447489", "Le Vieux Lyon, Lyon".
+    the page's link), or its name with its city as you would search it in Google Maps ("Gramercy
+    Tavern, New York"), for the place Google opens. A name Google answers with several places
+    answers `ambiguous_query` with the first ones (free): send the one you mean. Examples:
+    "ChIJ39Y-tdg1fYcRQcZcBb499do", "15777584755905447489", "Gramercy Tavern, New York".
     """
 
 
@@ -3446,9 +3462,9 @@ class GoogleMapsPlacesGetRecord(TypedDict):
 
 class GoogleMapsPlacesSearchOptionsNear(TypedDict):
     """Optional: the point to search around, as the map would centre on it ("bakery" around a
-    spot). Leave it out when the query names its place ("restaurants in Lyon", "Le Vieux Lyon,
-    Lyon"): Google locates it, better than a guessed point. Left out with a query naming no
-    place, Google uses the country.
+    spot). Leave it out when the query names its place ("restaurants in Austin", "Gramercy
+    Tavern, New York"): Google locates it, better than a guessed point. Left out with a query
+    naming no place, Google uses the country.
     """
 
     lat: float
@@ -3458,9 +3474,9 @@ class GoogleMapsPlacesSearchOptionsNear(TypedDict):
 class _GoogleMapsPlacesSearchOptionsRequired(TypedDict):
     query: str
     """What you would type in Google Maps' search box: a kind of place ("dentist"), a name, or both
-    with a place ("restaurants in Lyon"). Results are ranked for `country` (default us) and
+    with a place ("restaurants in Austin"). Results are ranked for `country` (default us) and
     written in `language` (default en): set them for a search elsewhere. Examples: "restaurants
-    in Lyon", "plumber".
+    in Austin", "plumber".
     """
 
 
@@ -3469,9 +3485,9 @@ class GoogleMapsPlacesSearchOptions(_GoogleMapsPlacesSearchOptionsRequired, tota
 
     near: GoogleMapsPlacesSearchOptionsNear
     """Optional: the point to search around, as the map would centre on it ("bakery" around a
-    spot). Leave it out when the query names its place ("restaurants in Lyon", "Le Vieux Lyon,
-    Lyon"): Google locates it, better than a guessed point. Left out with a query naming no
-    place, Google uses the country.
+    spot). Leave it out when the query names its place ("restaurants in Austin", "Gramercy
+    Tavern, New York"): Google locates it, better than a guessed point. Left out with a query
+    naming no place, Google uses the country.
     """
     zoom: int
     """The map's zoom around `near`, from 3 (a continent) to 20 (a street). Google lists places
@@ -4143,7 +4159,7 @@ class GoogleNewsArticlesSearchOptions(_GoogleNewsArticlesSearchOptionsRequired, 
     "GB:en".
     """
     site: str
-    """Only the articles of this publisher's domain (lemonde.fr, reuters.com). Examples:
+    """Only the articles of this publisher's domain (nytimes.com, reuters.com). Examples:
     "reuters.com".
     """
     when: GoogleNewsArticlesSearchOptionsWhen
@@ -4162,7 +4178,7 @@ class GoogleNewsArticlesSearchOptions(_GoogleNewsArticlesSearchOptionsRequired, 
 class GoogleNewsArticlesSearchRecordPublisher(TypedDict):
     name: Optional[str]
     site: Optional[str]
-    """The publisher's site: https://www.lemonde.fr."""
+    """The publisher's site: https://www.nytimes.com."""
     icon: Optional[str]
     """Its icon, as Google News shows it."""
     id: Optional[str]
@@ -8069,13 +8085,223 @@ class SelogerListingsSearchRecord(TypedDict):
     """When they were read, UTC."""
 
 
+# -- tripadvisor/reviews/list
+
+
+TripadvisorReviewsListOptionsSort = Literal["newest", "detailed", "most_insightful"]
+
+
+TripadvisorReviewsListOptionsTravelerTypesItem = Literal[
+    "families", "couples", "solo_travelers", "business_travelers", "groups_of_friends"
+]
+
+
+class _TripadvisorReviewsListOptionsRequired(TypedDict):
+    place: str
+    """The place: its page on TripAdvisor, from any of its sites (a hotel's, a restaurant's, an
+    attraction's, a tour's, or one of its reviews' pages: the address holds -d<number>-), or
+    that number alone (119768). A city's page has none and is refused. Examples:
+    "https://www.tripadvisor.com/Hotel_Review-g60750-d119768-Reviews-Doubletree_By_Hilton_Hotel_San_Diego_Del_Mar-San_Diego_California.html".
+    """
+
+
+class TripadvisorReviewsListOptions(_TripadvisorReviewsListOptionsRequired, total=False):
+    """The options of ``tripadvisor/reviews/list``."""
+
+    sort: TripadvisorReviewsListOptionsSort
+    """The order the list offers: newest written first; detailed (TripAdvisor's mix of recency and
+    how much a review says); most_insightful, offered on tours and tickets (elsewhere
+    TripAdvisor answers in the newest order). Default: "newest".
+    """
+    ratings: List[int]
+    """The reviews of these ratings only (any of them), as the list's Traveler rating filter. All
+    when not set. Examples: [1, 2].
+    """
+    traveler_types: List[TripadvisorReviewsListOptionsTravelerTypesItem]
+    """The reviews of these kinds of traveler only (any of them), as the Traveler type filter. All
+    when not set.
+    """
+    months: List[int]
+    """The reviews written in these months only (1 is January), of any year, as the Time of year
+    filter: the month the review was written, not the visit's (checked on 26/11). All when not
+    set. Examples: [6, 7, 8].
+    """
+    language: str
+    """The reviews in one language only, as the list's Read reviews in: those written in it and
+    TripAdvisor's machine translations into it (`translation` says which). Its code: en, fr, es,
+    he, zh-CN... All when not set; then a review comes in English when TripAdvisor has a
+    translation of it, else as written. Examples: "es".
+    """
+    query: str
+    """A word or a few to search the reviews for, as the list's search box (pool). Examples:
+    "pool".
+    """
+    safety_alerts_only: bool
+    """Only the reviews TripAdvisor marks with a traveler safety alert. Default: false."""
+    locale: str
+    """TripAdvisor's locale for the visit (en-US, fr-FR...); the reviews' language is `language`'s.
+    Default: "en-US". Examples: "en-US".
+    """
+    cursor: str
+    """Where to go on, from `next` in an answer, as it is: opaque, and only for the place, sort and
+    filters it was given with (otherwise `invalid_cursor`).
+    """
+
+
+class TripadvisorReviewsListRecordPlace(TypedDict, total=False):
+    """The place reviewed: the one asked, or on an attraction one of its tours or tickets."""
+
+    id: str
+    name: Optional[str]
+    type: Optional[str]
+    """accommodation, eatery, attraction or activity (a tour, a ticket)."""
+    url: Optional[str]
+
+
+class TripadvisorReviewsListRecordRating(TypedDict, total=False):
+    value: Optional[int]
+    scale: Literal[5]
+
+
+class TripadvisorReviewsListRecordTranslation(TypedDict, total=False):
+    """When the title and text are a translation: from what, by whom. Null when they are as
+    written.
+    """
+
+    type: Optional[str]
+    """machine or human."""
+    original_language: Optional[str]
+    provider: Optional[str]
+    """The machine translation's provider, as TripAdvisor names it: PHRASE..."""
+
+
+class TripadvisorReviewsListRecordVisit(TypedDict, total=False):
+    """When they stayed or visited, as TripAdvisor gives it: a month."""
+
+    year: Optional[int]
+    month: Optional[int]
+
+
+class TripadvisorReviewsListRecordAspectsItem(TypedDict, total=False):
+    label: Optional[str]
+    rating: Optional[int]
+
+
+class TripadvisorReviewsListRecordPhotosItem(TypedDict, total=False):
+    id: Optional[str]
+    url: Optional[str]
+    """The photo at its full size; its w and h set smaller give a smaller one."""
+    width: Optional[int]
+    height: Optional[int]
+    caption: Optional[str]
+
+
+class TripadvisorReviewsListRecordPartner(TypedDict, total=False):
+    """When it was collected with a business (DoubleTree by Hilton...)."""
+
+    in_partnership: bool
+    name: Optional[str]
+
+
+class TripadvisorReviewsListRecordReviewerHometown(TypedDict, total=False):
+    name: Optional[str]
+    """As TripAdvisor names it, or as the reviewer wrote it."""
+    location_id: Optional[str]
+    """TripAdvisor's id for it, when it knows the place."""
+
+
+class TripadvisorReviewsListRecordReviewer(TypedDict, total=False):
+    id: Optional[str]
+    name: Optional[str]
+    username: Optional[str]
+    profile_url: Optional[str]
+    photo_url: Optional[str]
+    verified: bool
+    contributions: Optional[int]
+    """Their contributions on TripAdvisor, reviews and photos."""
+    helpful_votes: Optional[int]
+    """The helpful votes they received."""
+    hometown: Optional[TripadvisorReviewsListRecordReviewerHometown]
+
+
+class TripadvisorReviewsListRecordResponseAuthor(TypedDict, total=False):
+    id: Optional[str]
+    name: Optional[str]
+    profile_url: Optional[str]
+    photo_url: Optional[str]
+
+
+class TripadvisorReviewsListRecordResponse(TypedDict, total=False):
+    """The owner's response; null when there is none. Never translated."""
+
+    id: Optional[str]
+    text: Optional[str]
+    language: Optional[str]
+    created_at: Optional[str]
+    role: Optional[str]
+    """As the responder wrote it: Guest Services / Front Office."""
+    author: TripadvisorReviewsListRecordResponseAuthor
+
+
+class TripadvisorReviewsListRecord(TypedDict):
+    """A record of ``tripadvisor/reviews/list``. With ``fields``, only the fields asked come."""
+
+    object: Literal["review"]
+    id: str
+    """The review's id on TripAdvisor."""
+    position: int
+    """Its rank in the list, across pages."""
+    place: TripadvisorReviewsListRecordPlace
+    """The place reviewed: the one asked, or on an attraction one of its tours or tickets."""
+    rating: TripadvisorReviewsListRecordRating
+    title: Optional[str]
+    text: Optional[str]
+    """In `language`, line breaks kept."""
+    language: Optional[str]
+    """The language of the title and text as given: en, es, he, zh-CN..."""
+    translation: Optional[TripadvisorReviewsListRecordTranslation]
+    """When the title and text are a translation: from what, by whom. Null when they are as
+    written.
+    """
+    created_at: Optional[str]
+    """When it was written, UTC."""
+    visit: Optional[TripadvisorReviewsListRecordVisit]
+    """When they stayed or visited, as TripAdvisor gives it: a month."""
+    traveler_type: Optional[str]
+    """families, couples, solo_travelers, business_travelers or groups_of_friends."""
+    aspects: List[TripadvisorReviewsListRecordAspectsItem]
+    """The sub-ratings out of 5, by their label in English: Rooms, Service, Food, Value..."""
+    tips: List[str]
+    """The reviewer's tips, as given (TripAdvisor sometimes gives one twice)."""
+    photos: List[TripadvisorReviewsListRecordPhotosItem]
+    """Every photo of the review, at its full size."""
+    photo_count: int
+    helpful_votes: int
+    """Readers who found it helpful."""
+    pinned: bool
+    """The review the owner pinned: second on page 1 of a list without filters."""
+    safety_alert: bool
+    """Whether TripAdvisor marks it with a traveler safety alert."""
+    partner: Optional[TripadvisorReviewsListRecordPartner]
+    """When it was collected with a business (DoubleTree by Hilton...)."""
+    reviewer: Optional[TripadvisorReviewsListRecordReviewer]
+    response: Optional[TripadvisorReviewsListRecordResponse]
+    """The owner's response; null when there is none. Never translated."""
+    url: Optional[str]
+    """The review's own page."""
+    source_url: str
+    """The place's page on TripAdvisor."""
+    observed_at: str
+    """When it was read, UTC."""
+
+
 # -- websites/contacts/get
 
 
 class _WebsitesContactsGetOptionsRequired(TypedDict):
     website: str
-    """The site's address (https://www.acme.fr/), or its domain alone (acme.fr, read as
-    https://acme.fr/). Examples: "https://www.example-plumber.fr/", "example-dentist.com".
+    """The site's address (https://www.acme.com/), or its domain alone (acme.com, read as
+    https://acme.com/). Examples: "https://www.example-plumber.fr/", "example-dentist.com".
     """
 
 
@@ -8162,11 +8388,11 @@ class WebsitesContactsGetRecord(TypedDict):
     website: str
     """The home page read, after its redirects."""
     domain: str
-    """The site's registrable domain: acme.fr for https://www.acme.fr/."""
+    """The site's registrable domain: acme.com for https://www.acme.com/."""
     emails: List[WebsitesContactsGetRecordEmailsItem]
     """Every address the pages show: their mailto links (those a site builder keeps in the page's
     scripts too), the addresses Cloudflare hides from bots (decoded), their schema.org data and
-    their text (name [at] acme.fr read too); any other address inside a page's scripts, only on
+    their text (name [at] acme.com read too); any other address inside a page's scripts, only on
     the site's own domain; never a theme's sample (info@yourcompany.com).
     """
     phones: List[WebsitesContactsGetRecordPhonesItem]
@@ -11849,7 +12075,7 @@ class _GoogleLensMatchesSearchOperation:
             language: The language of Google's words (titles Google writes, stock, dates), as
                 Google's `hl`. Default: "en". Examples: "en".
             country: The country whose stores and prices Lens lists, as Google's `gl` (ISO
-                3166-1 alpha-2, lower case): with fr, French stores in euros. Default: "us".
+                3166-1 alpha-2, lower case): with gb, British stores in pounds. Default: "us".
                 Examples: "us".
             fields: Only these fields of each record, by path (``name``, ``address.city``);
                 ``object``, ``id`` and ``position`` always come.
@@ -11913,7 +12139,7 @@ class _GoogleLensMatchesSearchOperation:
             language: The language of Google's words (titles Google writes, stock, dates), as
                 Google's `hl`. Default: "en". Examples: "en".
             country: The country whose stores and prices Lens lists, as Google's `gl` (ISO
-                3166-1 alpha-2, lower case): with fr, French stores in euros. Default: "us".
+                3166-1 alpha-2, lower case): with gb, British stores in pounds. Default: "us".
                 Examples: "us".
             fields: Only these fields of each record, by path (``name``, ``address.city``);
                 ``object``, ``id`` and ``position`` always come.
@@ -11972,10 +12198,10 @@ class _GoogleMapsPlacesGetOperation:
                 `id`), its cid (`ids.cid`), its feature id (`ids.feature_id`, 0x...:0x...), the link
                 of its page on Google Maps as the browser shows it (a short maps.app.goo.gl link is
                 not taken: open it and copy the page's link), or its name with its city as you would
-                search it in Google Maps ("Le Vieux Lyon, Lyon"), for the place Google opens. A name
-                Google answers with several places answers `ambiguous_query` with the first ones
-                (free): send the one you mean. Examples: "ChIJ39Y-tdg1fYcRQcZcBb499do",
-                "15777584755905447489", "Le Vieux Lyon, Lyon".
+                search it in Google Maps ("Gramercy Tavern, New York"), for the place Google opens.
+                A name Google answers with several places answers `ambiguous_query` with the first
+                ones (free): send the one you mean. Examples: "ChIJ39Y-tdg1fYcRQcZcBb499do",
+                "15777584755905447489", "Gramercy Tavern, New York".
             language: The language of names, categories, hours and labels, as an ISO 639-1 code.
                 Default: "en".
             country: The country Google answers for, as an ISO 3166-1 alpha-2 code in lower
@@ -12031,13 +12257,13 @@ class _GoogleMapsPlacesSearchOperation:
 
         Args:
             query: What you would type in Google Maps' search box: a kind of place ("dentist"),
-                a name, or both with a place ("restaurants in Lyon"). Results are ranked for
+                a name, or both with a place ("restaurants in Austin"). Results are ranked for
                 `country` (default us) and written in `language` (default en): set them for a search
-                elsewhere. Examples: "restaurants in Lyon", "plumber".
+                elsewhere. Examples: "restaurants in Austin", "plumber".
             near: Optional: the point to search around, as the map would centre on it ("bakery"
-                around a spot). Leave it out when the query names its place ("restaurants in Lyon",
-                "Le Vieux Lyon, Lyon"): Google locates it, better than a guessed point. Left out
-                with a query naming no place, Google uses the country.
+                around a spot). Leave it out when the query names its place ("restaurants in
+                Austin", "Gramercy Tavern, New York"): Google locates it, better than a guessed
+                point. Left out with a query naming no place, Google uses the country.
             zoom: The map's zoom around `near`, from 3 (a continent) to 20 (a street). Google
                 lists places from the whole area the map shows, ranked by relevance, not by
                 distance: at 13 they spread about 4 km around `near`, at 15 about 1 km (a
@@ -12108,13 +12334,13 @@ class _GoogleMapsPlacesSearchOperation:
 
         Args:
             query: What you would type in Google Maps' search box: a kind of place ("dentist"),
-                a name, or both with a place ("restaurants in Lyon"). Results are ranked for
+                a name, or both with a place ("restaurants in Austin"). Results are ranked for
                 `country` (default us) and written in `language` (default en): set them for a search
-                elsewhere. Examples: "restaurants in Lyon", "plumber".
+                elsewhere. Examples: "restaurants in Austin", "plumber".
             near: Optional: the point to search around, as the map would centre on it ("bakery"
-                around a spot). Leave it out when the query names its place ("restaurants in Lyon",
-                "Le Vieux Lyon, Lyon"): Google locates it, better than a guessed point. Left out
-                with a query naming no place, Google uses the country.
+                around a spot). Leave it out when the query names its place ("restaurants in
+                Austin", "Gramercy Tavern, New York"): Google locates it, better than a guessed
+                point. Left out with a query naming no place, Google uses the country.
             zoom: The map's zoom around `near`, from 3 (a continent) to 20 (a street). Google
                 lists places from the whole area the map shows, ranked by relevance, not by
                 distance: at 13 they spread about 4 km around `near`, at 15 about 1 km (a
@@ -12316,7 +12542,7 @@ class _GoogleNewsArticlesSearchOperation:
                 "Language & region" menu): US:en by default, GB:en, FR:fr, DE:de, IN:en,
                 BR:pt-419... Google ranks and picks the articles for that edition's readers.
                 Default: "US:en". Examples: "US:en", "FR:fr", "GB:en".
-            site: Only the articles of this publisher's domain (lemonde.fr, reuters.com).
+            site: Only the articles of this publisher's domain (nytimes.com, reuters.com).
                 Examples: "reuters.com".
             when: Only the articles of the last hour, day or week. Not with `after` or `before`.
             after: Only the articles published from this day (YYYY-MM-DD), which Google reads in
@@ -12383,7 +12609,7 @@ class _GoogleNewsArticlesSearchOperation:
                 "Language & region" menu): US:en by default, GB:en, FR:fr, DE:de, IN:en,
                 BR:pt-419... Google ranks and picks the articles for that edition's readers.
                 Default: "US:en". Examples: "US:en", "FR:fr", "GB:en".
-            site: Only the articles of this publisher's domain (lemonde.fr, reuters.com).
+            site: Only the articles of this publisher's domain (nytimes.com, reuters.com).
                 Examples: "reuters.com".
             when: Only the articles of the last hour, day or week. Not with `after` or `before`.
             after: Only the articles published from this day (YYYY-MM-DD), which Google reads in
@@ -13702,6 +13928,189 @@ class _SelogerListingsSearchOperation:
         return cast("Iterator[SelogerListingsSearchRecord]", records)
 
 
+class _TripadvisorReviewsListOperation:
+    """``tripadvisor/reviews/list``: One page of a TripAdvisor place's reviews (a hotel, a
+    restaurant, an attraction, a tour), 20 at most, each with its rating out of 5, title, text,
+    the visit, the kind of traveler, sub-ratings, tips, photos, the reviewer and the owner's
+    response.
+    """
+
+    operation = "tripadvisor/reviews/list"
+
+    def __init__(self, client: "Lobstr") -> None:
+        self._client = client
+
+    def __call__(
+        self,
+        *,
+        place: str,
+        sort: Optional[TripadvisorReviewsListOptionsSort] = None,
+        ratings: Optional[List[int]] = None,
+        traveler_types: Optional[List[TripadvisorReviewsListOptionsTravelerTypesItem]] = None,
+        months: Optional[List[int]] = None,
+        language: Optional[str] = None,
+        query: Optional[str] = None,
+        safety_alerts_only: Optional[bool] = None,
+        locale: Optional[str] = None,
+        cursor: Optional[str] = None,
+        fields: _Fields = None,
+        limit: Optional[int] = None,
+        timeout_s: Optional[int] = None,
+        idempotency_key: Optional[str] = None,
+    ) -> "Run[TripadvisorReviewsListRecord]":
+        """One page of a TripAdvisor place's reviews (a hotel, a restaurant, an attraction, a
+        tour), 20 at most, each with its rating out of 5, title, text, the visit, the kind of
+        traveler, sub-ratings, tips, photos, the reviewer and the owner's response.
+
+        Args:
+            place: The place: its page on TripAdvisor, from any of its sites (a hotel's, a
+                restaurant's, an attraction's, a tour's, or one of its reviews' pages: the address
+                holds -d<number>-), or that number alone (119768). A city's page has none and is
+                refused. Examples:
+                "https://www.tripadvisor.com/Hotel_Review-g60750-d119768-Reviews-Doubletree_By_Hilton_Hotel_San_Diego_Del_Mar-San_Diego_California.html".
+            sort: The order the list offers: newest written first; detailed (TripAdvisor's mix
+                of recency and how much a review says); most_insightful, offered on tours and
+                tickets (elsewhere TripAdvisor answers in the newest order). Default: "newest".
+            ratings: The reviews of these ratings only (any of them), as the list's Traveler
+                rating filter. All when not set. Examples: [1, 2].
+            traveler_types: The reviews of these kinds of traveler only (any of them), as the
+                Traveler type filter. All when not set.
+            months: The reviews written in these months only (1 is January), of any year, as the
+                Time of year filter: the month the review was written, not the visit's (checked on
+                26/11). All when not set. Examples: [6, 7, 8].
+            language: The reviews in one language only, as the list's Read reviews in: those
+                written in it and TripAdvisor's machine translations into it (`translation` says
+                which). Its code: en, fr, es, he, zh-CN... All when not set; then a review comes in
+                English when TripAdvisor has a translation of it, else as written. Examples: "es".
+            query: A word or a few to search the reviews for, as the list's search box (pool).
+                Examples: "pool".
+            safety_alerts_only: Only the reviews TripAdvisor marks with a traveler safety alert.
+                Default: false.
+            locale: TripAdvisor's locale for the visit (en-US, fr-FR...); the reviews' language
+                is `language`'s. Default: "en-US". Examples: "en-US".
+            cursor: Where to go on, from `next` in an answer, as it is: opaque, and only for the
+                place, sort and filters it was given with (otherwise `invalid_cursor`).
+            fields: Only these fields of each record, by path (``name``, ``address.city``);
+                ``object``, ``id`` and ``position`` always come.
+            limit: Only the first 1 to 1,000 records of the page; the call costs the same.
+            timeout_s: The most seconds the API waits for the site, up to the operation's
+                maximum.
+            idempotency_key: Sent as ``Idempotency-Key``; a UUID4 when left out, kept across
+                retries.
+
+        Returns:
+            The answer, its records (``TripadvisorReviewsListRecord``) in ``results``.
+                ``run.next_page()`` gives the following page; ``.iterate(...)`` every record.
+
+        The contract: https://api.lobstr.io/v2/catalog/tripadvisor/reviews/list
+        """
+        run = self._client.run(
+            "tripadvisor/reviews/list",
+            _options(
+                {
+                    "place": place,
+                    "sort": sort,
+                    "ratings": ratings,
+                    "traveler_types": traveler_types,
+                    "months": months,
+                    "language": language,
+                    "query": query,
+                    "safety_alerts_only": safety_alerts_only,
+                    "locale": locale,
+                    "cursor": cursor,
+                }
+            ),
+            fields=fields,
+            limit=limit,
+            timeout_s=timeout_s,
+            idempotency_key=idempotency_key,
+        )
+        return cast("Run[TripadvisorReviewsListRecord]", run)
+
+    def iterate(
+        self,
+        *,
+        place: str,
+        sort: Optional[TripadvisorReviewsListOptionsSort] = None,
+        ratings: Optional[List[int]] = None,
+        traveler_types: Optional[List[TripadvisorReviewsListOptionsTravelerTypesItem]] = None,
+        months: Optional[List[int]] = None,
+        language: Optional[str] = None,
+        query: Optional[str] = None,
+        safety_alerts_only: Optional[bool] = None,
+        locale: Optional[str] = None,
+        cursor: Optional[str] = None,
+        fields: _Fields = None,
+        limit: Optional[int] = None,
+        timeout_s: Optional[int] = None,
+        max_records: Optional[int] = None,
+        max_pages: Optional[int] = None,
+    ) -> "Iterator[TripadvisorReviewsListRecord]":
+        """Every page's records of ``tripadvisor/reviews/list``, following ``next`` until it is
+        null or a cap is hit.
+
+        Args:
+            place: The place: its page on TripAdvisor, from any of its sites (a hotel's, a
+                restaurant's, an attraction's, a tour's, or one of its reviews' pages: the address
+                holds -d<number>-), or that number alone (119768). A city's page has none and is
+                refused. Examples:
+                "https://www.tripadvisor.com/Hotel_Review-g60750-d119768-Reviews-Doubletree_By_Hilton_Hotel_San_Diego_Del_Mar-San_Diego_California.html".
+            sort: The order the list offers: newest written first; detailed (TripAdvisor's mix
+                of recency and how much a review says); most_insightful, offered on tours and
+                tickets (elsewhere TripAdvisor answers in the newest order). Default: "newest".
+            ratings: The reviews of these ratings only (any of them), as the list's Traveler
+                rating filter. All when not set. Examples: [1, 2].
+            traveler_types: The reviews of these kinds of traveler only (any of them), as the
+                Traveler type filter. All when not set.
+            months: The reviews written in these months only (1 is January), of any year, as the
+                Time of year filter: the month the review was written, not the visit's (checked on
+                26/11). All when not set. Examples: [6, 7, 8].
+            language: The reviews in one language only, as the list's Read reviews in: those
+                written in it and TripAdvisor's machine translations into it (`translation` says
+                which). Its code: en, fr, es, he, zh-CN... All when not set; then a review comes in
+                English when TripAdvisor has a translation of it, else as written. Examples: "es".
+            query: A word or a few to search the reviews for, as the list's search box (pool).
+                Examples: "pool".
+            safety_alerts_only: Only the reviews TripAdvisor marks with a traveler safety alert.
+                Default: false.
+            locale: TripAdvisor's locale for the visit (en-US, fr-FR...); the reviews' language
+                is `language`'s. Default: "en-US". Examples: "en-US".
+            cursor: Where to go on, from `next` in an answer, as it is: opaque, and only for the
+                place, sort and filters it was given with (otherwise `invalid_cursor`).
+            fields: Only these fields of each record, by path (``name``, ``address.city``);
+                ``object``, ``id`` and ``position`` always come.
+            limit: Only the first 1 to 1,000 records of the page; the call costs the same.
+            timeout_s: The most seconds the API waits for the site, up to the operation's
+                maximum.
+            max_records: Stop after this many records.
+            max_pages: Stop after this many pages (each page is one call, at the operation's
+                price).
+        """
+        records = self._client.iterate(
+            "tripadvisor/reviews/list",
+            _options(
+                {
+                    "place": place,
+                    "sort": sort,
+                    "ratings": ratings,
+                    "traveler_types": traveler_types,
+                    "months": months,
+                    "language": language,
+                    "query": query,
+                    "safety_alerts_only": safety_alerts_only,
+                    "locale": locale,
+                    "cursor": cursor,
+                }
+            ),
+            max_records=max_records,
+            max_pages=max_pages,
+            fields=fields,
+            limit=limit,
+            timeout_s=timeout_s,
+        )
+        return cast("Iterator[TripadvisorReviewsListRecord]", records)
+
+
 class _WebsitesContactsGetOperation:
     """``websites/contacts/get``: The emails, phone numbers and profiles (social networks,
     directories) a company's website shows, each with its page.
@@ -13726,8 +14135,8 @@ class _WebsitesContactsGetOperation:
         website shows, each with its page.
 
         Args:
-            website: The site's address (https://www.acme.fr/), or its domain alone (acme.fr,
-                read as https://acme.fr/). Examples: "https://www.example-plumber.fr/",
+            website: The site's address (https://www.acme.com/), or its domain alone (acme.com,
+                read as https://acme.com/). Examples: "https://www.example-plumber.fr/",
                 "example-dentist.com".
             max_pages: The pages read at most: the home page, then those its links name as
                 contact, legal notice (mentions légales, Impressum) or about, in that order. 4 by
@@ -14933,6 +15342,24 @@ class _SelogerSource:
         self.listings = _SelogerListingsResource(client)
 
 
+class _TripadvisorReviewsResource:
+    """``tripadvisor/reviews/...``"""
+
+    list: _TripadvisorReviewsListOperation
+
+    def __init__(self, client: "Lobstr") -> None:
+        self.list = _TripadvisorReviewsListOperation(client)
+
+
+class _TripadvisorSource:
+    """The operations on ``tripadvisor``."""
+
+    reviews: _TripadvisorReviewsResource
+
+    def __init__(self, client: "Lobstr") -> None:
+        self.reviews = _TripadvisorReviewsResource(client)
+
+
 class _WebsitesContactsResource:
     """``websites/contacts/...``"""
 
@@ -15054,6 +15481,7 @@ class SyncOperations:
     realtor: _RealtorSource
     sales_navigator: _SalesNavigatorSource
     seloger: _SelogerSource
+    tripadvisor: _TripadvisorSource
     websites: _WebsitesSource
     x: _XSource
 
@@ -15071,6 +15499,7 @@ class SyncOperations:
         self.realtor = _RealtorSource(client)
         self.sales_navigator = _SalesNavigatorSource(client)
         self.seloger = _SelogerSource(client)
+        self.tripadvisor = _TripadvisorSource(client)
         self.websites = _WebsitesSource(client)
         self.x = _XSource(client)
 
@@ -16176,7 +16605,7 @@ class _AsyncGoogleLensMatchesSearchOperation:
             language: The language of Google's words (titles Google writes, stock, dates), as
                 Google's `hl`. Default: "en". Examples: "en".
             country: The country whose stores and prices Lens lists, as Google's `gl` (ISO
-                3166-1 alpha-2, lower case): with fr, French stores in euros. Default: "us".
+                3166-1 alpha-2, lower case): with gb, British stores in pounds. Default: "us".
                 Examples: "us".
             fields: Only these fields of each record, by path (``name``, ``address.city``);
                 ``object``, ``id`` and ``position`` always come.
@@ -16240,7 +16669,7 @@ class _AsyncGoogleLensMatchesSearchOperation:
             language: The language of Google's words (titles Google writes, stock, dates), as
                 Google's `hl`. Default: "en". Examples: "en".
             country: The country whose stores and prices Lens lists, as Google's `gl` (ISO
-                3166-1 alpha-2, lower case): with fr, French stores in euros. Default: "us".
+                3166-1 alpha-2, lower case): with gb, British stores in pounds. Default: "us".
                 Examples: "us".
             fields: Only these fields of each record, by path (``name``, ``address.city``);
                 ``object``, ``id`` and ``position`` always come.
@@ -16299,10 +16728,10 @@ class _AsyncGoogleMapsPlacesGetOperation:
                 `id`), its cid (`ids.cid`), its feature id (`ids.feature_id`, 0x...:0x...), the link
                 of its page on Google Maps as the browser shows it (a short maps.app.goo.gl link is
                 not taken: open it and copy the page's link), or its name with its city as you would
-                search it in Google Maps ("Le Vieux Lyon, Lyon"), for the place Google opens. A name
-                Google answers with several places answers `ambiguous_query` with the first ones
-                (free): send the one you mean. Examples: "ChIJ39Y-tdg1fYcRQcZcBb499do",
-                "15777584755905447489", "Le Vieux Lyon, Lyon".
+                search it in Google Maps ("Gramercy Tavern, New York"), for the place Google opens.
+                A name Google answers with several places answers `ambiguous_query` with the first
+                ones (free): send the one you mean. Examples: "ChIJ39Y-tdg1fYcRQcZcBb499do",
+                "15777584755905447489", "Gramercy Tavern, New York".
             language: The language of names, categories, hours and labels, as an ISO 639-1 code.
                 Default: "en".
             country: The country Google answers for, as an ISO 3166-1 alpha-2 code in lower
@@ -16358,13 +16787,13 @@ class _AsyncGoogleMapsPlacesSearchOperation:
 
         Args:
             query: What you would type in Google Maps' search box: a kind of place ("dentist"),
-                a name, or both with a place ("restaurants in Lyon"). Results are ranked for
+                a name, or both with a place ("restaurants in Austin"). Results are ranked for
                 `country` (default us) and written in `language` (default en): set them for a search
-                elsewhere. Examples: "restaurants in Lyon", "plumber".
+                elsewhere. Examples: "restaurants in Austin", "plumber".
             near: Optional: the point to search around, as the map would centre on it ("bakery"
-                around a spot). Leave it out when the query names its place ("restaurants in Lyon",
-                "Le Vieux Lyon, Lyon"): Google locates it, better than a guessed point. Left out
-                with a query naming no place, Google uses the country.
+                around a spot). Leave it out when the query names its place ("restaurants in
+                Austin", "Gramercy Tavern, New York"): Google locates it, better than a guessed
+                point. Left out with a query naming no place, Google uses the country.
             zoom: The map's zoom around `near`, from 3 (a continent) to 20 (a street). Google
                 lists places from the whole area the map shows, ranked by relevance, not by
                 distance: at 13 they spread about 4 km around `near`, at 15 about 1 km (a
@@ -16435,13 +16864,13 @@ class _AsyncGoogleMapsPlacesSearchOperation:
 
         Args:
             query: What you would type in Google Maps' search box: a kind of place ("dentist"),
-                a name, or both with a place ("restaurants in Lyon"). Results are ranked for
+                a name, or both with a place ("restaurants in Austin"). Results are ranked for
                 `country` (default us) and written in `language` (default en): set them for a search
-                elsewhere. Examples: "restaurants in Lyon", "plumber".
+                elsewhere. Examples: "restaurants in Austin", "plumber".
             near: Optional: the point to search around, as the map would centre on it ("bakery"
-                around a spot). Leave it out when the query names its place ("restaurants in Lyon",
-                "Le Vieux Lyon, Lyon"): Google locates it, better than a guessed point. Left out
-                with a query naming no place, Google uses the country.
+                around a spot). Leave it out when the query names its place ("restaurants in
+                Austin", "Gramercy Tavern, New York"): Google locates it, better than a guessed
+                point. Left out with a query naming no place, Google uses the country.
             zoom: The map's zoom around `near`, from 3 (a continent) to 20 (a street). Google
                 lists places from the whole area the map shows, ranked by relevance, not by
                 distance: at 13 they spread about 4 km around `near`, at 15 about 1 km (a
@@ -16643,7 +17072,7 @@ class _AsyncGoogleNewsArticlesSearchOperation:
                 "Language & region" menu): US:en by default, GB:en, FR:fr, DE:de, IN:en,
                 BR:pt-419... Google ranks and picks the articles for that edition's readers.
                 Default: "US:en". Examples: "US:en", "FR:fr", "GB:en".
-            site: Only the articles of this publisher's domain (lemonde.fr, reuters.com).
+            site: Only the articles of this publisher's domain (nytimes.com, reuters.com).
                 Examples: "reuters.com".
             when: Only the articles of the last hour, day or week. Not with `after` or `before`.
             after: Only the articles published from this day (YYYY-MM-DD), which Google reads in
@@ -16710,7 +17139,7 @@ class _AsyncGoogleNewsArticlesSearchOperation:
                 "Language & region" menu): US:en by default, GB:en, FR:fr, DE:de, IN:en,
                 BR:pt-419... Google ranks and picks the articles for that edition's readers.
                 Default: "US:en". Examples: "US:en", "FR:fr", "GB:en".
-            site: Only the articles of this publisher's domain (lemonde.fr, reuters.com).
+            site: Only the articles of this publisher's domain (nytimes.com, reuters.com).
                 Examples: "reuters.com".
             when: Only the articles of the last hour, day or week. Not with `after` or `before`.
             after: Only the articles published from this day (YYYY-MM-DD), which Google reads in
@@ -18029,6 +18458,189 @@ class _AsyncSelogerListingsSearchOperation:
         return cast("AsyncIterator[SelogerListingsSearchRecord]", records)
 
 
+class _AsyncTripadvisorReviewsListOperation:
+    """``tripadvisor/reviews/list``: One page of a TripAdvisor place's reviews (a hotel, a
+    restaurant, an attraction, a tour), 20 at most, each with its rating out of 5, title, text,
+    the visit, the kind of traveler, sub-ratings, tips, photos, the reviewer and the owner's
+    response.
+    """
+
+    operation = "tripadvisor/reviews/list"
+
+    def __init__(self, client: "AsyncLobstr") -> None:
+        self._client = client
+
+    async def __call__(
+        self,
+        *,
+        place: str,
+        sort: Optional[TripadvisorReviewsListOptionsSort] = None,
+        ratings: Optional[List[int]] = None,
+        traveler_types: Optional[List[TripadvisorReviewsListOptionsTravelerTypesItem]] = None,
+        months: Optional[List[int]] = None,
+        language: Optional[str] = None,
+        query: Optional[str] = None,
+        safety_alerts_only: Optional[bool] = None,
+        locale: Optional[str] = None,
+        cursor: Optional[str] = None,
+        fields: _Fields = None,
+        limit: Optional[int] = None,
+        timeout_s: Optional[int] = None,
+        idempotency_key: Optional[str] = None,
+    ) -> "AsyncRun[TripadvisorReviewsListRecord]":
+        """One page of a TripAdvisor place's reviews (a hotel, a restaurant, an attraction, a
+        tour), 20 at most, each with its rating out of 5, title, text, the visit, the kind of
+        traveler, sub-ratings, tips, photos, the reviewer and the owner's response.
+
+        Args:
+            place: The place: its page on TripAdvisor, from any of its sites (a hotel's, a
+                restaurant's, an attraction's, a tour's, or one of its reviews' pages: the address
+                holds -d<number>-), or that number alone (119768). A city's page has none and is
+                refused. Examples:
+                "https://www.tripadvisor.com/Hotel_Review-g60750-d119768-Reviews-Doubletree_By_Hilton_Hotel_San_Diego_Del_Mar-San_Diego_California.html".
+            sort: The order the list offers: newest written first; detailed (TripAdvisor's mix
+                of recency and how much a review says); most_insightful, offered on tours and
+                tickets (elsewhere TripAdvisor answers in the newest order). Default: "newest".
+            ratings: The reviews of these ratings only (any of them), as the list's Traveler
+                rating filter. All when not set. Examples: [1, 2].
+            traveler_types: The reviews of these kinds of traveler only (any of them), as the
+                Traveler type filter. All when not set.
+            months: The reviews written in these months only (1 is January), of any year, as the
+                Time of year filter: the month the review was written, not the visit's (checked on
+                26/11). All when not set. Examples: [6, 7, 8].
+            language: The reviews in one language only, as the list's Read reviews in: those
+                written in it and TripAdvisor's machine translations into it (`translation` says
+                which). Its code: en, fr, es, he, zh-CN... All when not set; then a review comes in
+                English when TripAdvisor has a translation of it, else as written. Examples: "es".
+            query: A word or a few to search the reviews for, as the list's search box (pool).
+                Examples: "pool".
+            safety_alerts_only: Only the reviews TripAdvisor marks with a traveler safety alert.
+                Default: false.
+            locale: TripAdvisor's locale for the visit (en-US, fr-FR...); the reviews' language
+                is `language`'s. Default: "en-US". Examples: "en-US".
+            cursor: Where to go on, from `next` in an answer, as it is: opaque, and only for the
+                place, sort and filters it was given with (otherwise `invalid_cursor`).
+            fields: Only these fields of each record, by path (``name``, ``address.city``);
+                ``object``, ``id`` and ``position`` always come.
+            limit: Only the first 1 to 1,000 records of the page; the call costs the same.
+            timeout_s: The most seconds the API waits for the site, up to the operation's
+                maximum.
+            idempotency_key: Sent as ``Idempotency-Key``; a UUID4 when left out, kept across
+                retries.
+
+        Returns:
+            The answer, its records (``TripadvisorReviewsListRecord``) in ``results``. ``await
+                run.next_page()`` gives the following page; ``.iterate(...)`` every record.
+
+        The contract: https://api.lobstr.io/v2/catalog/tripadvisor/reviews/list
+        """
+        run = await self._client.run(
+            "tripadvisor/reviews/list",
+            _options(
+                {
+                    "place": place,
+                    "sort": sort,
+                    "ratings": ratings,
+                    "traveler_types": traveler_types,
+                    "months": months,
+                    "language": language,
+                    "query": query,
+                    "safety_alerts_only": safety_alerts_only,
+                    "locale": locale,
+                    "cursor": cursor,
+                }
+            ),
+            fields=fields,
+            limit=limit,
+            timeout_s=timeout_s,
+            idempotency_key=idempotency_key,
+        )
+        return cast("AsyncRun[TripadvisorReviewsListRecord]", run)
+
+    def iterate(
+        self,
+        *,
+        place: str,
+        sort: Optional[TripadvisorReviewsListOptionsSort] = None,
+        ratings: Optional[List[int]] = None,
+        traveler_types: Optional[List[TripadvisorReviewsListOptionsTravelerTypesItem]] = None,
+        months: Optional[List[int]] = None,
+        language: Optional[str] = None,
+        query: Optional[str] = None,
+        safety_alerts_only: Optional[bool] = None,
+        locale: Optional[str] = None,
+        cursor: Optional[str] = None,
+        fields: _Fields = None,
+        limit: Optional[int] = None,
+        timeout_s: Optional[int] = None,
+        max_records: Optional[int] = None,
+        max_pages: Optional[int] = None,
+    ) -> "AsyncIterator[TripadvisorReviewsListRecord]":
+        """Every page's records of ``tripadvisor/reviews/list`` (``async for``), following ``next``
+        until it is null or a cap is hit.
+
+        Args:
+            place: The place: its page on TripAdvisor, from any of its sites (a hotel's, a
+                restaurant's, an attraction's, a tour's, or one of its reviews' pages: the address
+                holds -d<number>-), or that number alone (119768). A city's page has none and is
+                refused. Examples:
+                "https://www.tripadvisor.com/Hotel_Review-g60750-d119768-Reviews-Doubletree_By_Hilton_Hotel_San_Diego_Del_Mar-San_Diego_California.html".
+            sort: The order the list offers: newest written first; detailed (TripAdvisor's mix
+                of recency and how much a review says); most_insightful, offered on tours and
+                tickets (elsewhere TripAdvisor answers in the newest order). Default: "newest".
+            ratings: The reviews of these ratings only (any of them), as the list's Traveler
+                rating filter. All when not set. Examples: [1, 2].
+            traveler_types: The reviews of these kinds of traveler only (any of them), as the
+                Traveler type filter. All when not set.
+            months: The reviews written in these months only (1 is January), of any year, as the
+                Time of year filter: the month the review was written, not the visit's (checked on
+                26/11). All when not set. Examples: [6, 7, 8].
+            language: The reviews in one language only, as the list's Read reviews in: those
+                written in it and TripAdvisor's machine translations into it (`translation` says
+                which). Its code: en, fr, es, he, zh-CN... All when not set; then a review comes in
+                English when TripAdvisor has a translation of it, else as written. Examples: "es".
+            query: A word or a few to search the reviews for, as the list's search box (pool).
+                Examples: "pool".
+            safety_alerts_only: Only the reviews TripAdvisor marks with a traveler safety alert.
+                Default: false.
+            locale: TripAdvisor's locale for the visit (en-US, fr-FR...); the reviews' language
+                is `language`'s. Default: "en-US". Examples: "en-US".
+            cursor: Where to go on, from `next` in an answer, as it is: opaque, and only for the
+                place, sort and filters it was given with (otherwise `invalid_cursor`).
+            fields: Only these fields of each record, by path (``name``, ``address.city``);
+                ``object``, ``id`` and ``position`` always come.
+            limit: Only the first 1 to 1,000 records of the page; the call costs the same.
+            timeout_s: The most seconds the API waits for the site, up to the operation's
+                maximum.
+            max_records: Stop after this many records.
+            max_pages: Stop after this many pages (each page is one call, at the operation's
+                price).
+        """
+        records = self._client.iterate(
+            "tripadvisor/reviews/list",
+            _options(
+                {
+                    "place": place,
+                    "sort": sort,
+                    "ratings": ratings,
+                    "traveler_types": traveler_types,
+                    "months": months,
+                    "language": language,
+                    "query": query,
+                    "safety_alerts_only": safety_alerts_only,
+                    "locale": locale,
+                    "cursor": cursor,
+                }
+            ),
+            max_records=max_records,
+            max_pages=max_pages,
+            fields=fields,
+            limit=limit,
+            timeout_s=timeout_s,
+        )
+        return cast("AsyncIterator[TripadvisorReviewsListRecord]", records)
+
+
 class _AsyncWebsitesContactsGetOperation:
     """``websites/contacts/get``: The emails, phone numbers and profiles (social networks,
     directories) a company's website shows, each with its page.
@@ -18053,8 +18665,8 @@ class _AsyncWebsitesContactsGetOperation:
         website shows, each with its page.
 
         Args:
-            website: The site's address (https://www.acme.fr/), or its domain alone (acme.fr,
-                read as https://acme.fr/). Examples: "https://www.example-plumber.fr/",
+            website: The site's address (https://www.acme.com/), or its domain alone (acme.com,
+                read as https://acme.com/). Examples: "https://www.example-plumber.fr/",
                 "example-dentist.com".
             max_pages: The pages read at most: the home page, then those its links name as
                 contact, legal notice (mentions légales, Impressum) or about, in that order. 4 by
@@ -19260,6 +19872,24 @@ class _AsyncSelogerSource:
         self.listings = _AsyncSelogerListingsResource(client)
 
 
+class _AsyncTripadvisorReviewsResource:
+    """``tripadvisor/reviews/...``"""
+
+    list: _AsyncTripadvisorReviewsListOperation
+
+    def __init__(self, client: "AsyncLobstr") -> None:
+        self.list = _AsyncTripadvisorReviewsListOperation(client)
+
+
+class _AsyncTripadvisorSource:
+    """The operations on ``tripadvisor``."""
+
+    reviews: _AsyncTripadvisorReviewsResource
+
+    def __init__(self, client: "AsyncLobstr") -> None:
+        self.reviews = _AsyncTripadvisorReviewsResource(client)
+
+
 class _AsyncWebsitesContactsResource:
     """``websites/contacts/...``"""
 
@@ -19381,6 +20011,7 @@ class AsyncOperations:
     realtor: _AsyncRealtorSource
     sales_navigator: _AsyncSalesNavigatorSource
     seloger: _AsyncSelogerSource
+    tripadvisor: _AsyncTripadvisorSource
     websites: _AsyncWebsitesSource
     x: _AsyncXSource
 
@@ -19398,5 +20029,6 @@ class AsyncOperations:
         self.realtor = _AsyncRealtorSource(client)
         self.sales_navigator = _AsyncSalesNavigatorSource(client)
         self.seloger = _AsyncSelogerSource(client)
+        self.tripadvisor = _AsyncTripadvisorSource(client)
         self.websites = _AsyncWebsitesSource(client)
         self.x = _AsyncXSource(client)
