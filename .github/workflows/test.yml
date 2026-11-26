@@ -33,3 +33,18 @@ jobs:
       - run: pip install -e ".[dev]"
       # The live smoke test (tests/test_live.py) is skipped: no LOBSTR_API_KEY here.
       - run: pytest
+
+  integrations:
+    # lobstrio.langchain and lobstrio.crewai with their frameworks: langchain-core needs Python 3.11+,
+    # crewai 3.10 to 3.13. The test matrix above runs their tests skipped, the base install alone.
+    runs-on: ubuntu-latest
+    env:
+      CREWAI_DISABLE_TELEMETRY: 'true'
+      OTEL_SDK_DISABLED: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: pip install -e ".[dev,langchain,crewai]"
+      - run: pytest tests/test_tools.py tests/test_langchain.py tests/test_crewai.py

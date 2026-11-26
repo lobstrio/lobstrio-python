@@ -5,7 +5,7 @@ import uuid
 import pytest
 
 from _helpers import API_KEY, Mock, async_client, client, envelope, ok
-from lobstrio import AsyncRun, AuthenticationError, Lobstr, Run
+from lobstrio import AsyncRun, AuthenticationError, Lobstr, Run, __version__
 from lobstrio._base import DEFAULT_TIMEOUT
 
 
@@ -25,7 +25,7 @@ def test_run_sends_the_request_and_reads_the_answer():
         "limit": 1,
     }
     assert request.headers["authorization"] == f"Bearer {API_KEY}"
-    assert request.headers["user-agent"].startswith("lobstrio-python/1.0.0 (python/")
+    assert request.headers["user-agent"].startswith(f"lobstrio-python/{__version__} (python/")
     assert uuid.UUID(request.headers["idempotency-key"]).version == 4
     assert isinstance(run, Run)
     assert run.id == "run_1"

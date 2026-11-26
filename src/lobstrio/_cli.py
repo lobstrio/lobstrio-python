@@ -1,6 +1,6 @@
 """The ``lobstr`` command: lobstr.io's API v2 from a terminal.
 
-    lobstr run google_maps/places/search query="bakeries in Lyon" near.lat=45.76 --limit 5
+    lobstr run google_maps/places/search query="bakeries in Austin, TX" near.lat=30.27 --limit 5
 
 The same grammar as the Node SDK's ``lobstr``. Output: pretty JSON on a terminal, compact JSON when
 piped, JSON Lines with ``--jsonl``. Errors: the API's message and its doc_url on stderr, exit code 1;
@@ -28,13 +28,13 @@ Usage:
   lobstr feedback "<message>" [--operation op] [--run id]
 
 Options are key=value: the value is read as JSON when it is valid JSON, else as a string; dotted keys nest
-(near.lat=45.76). --all follows every page (each page is a call, at the operation's price), up to --max-records.
+(near.lat=30.27). --all follows every page (each page is a call, at the operation's price), up to --max-records.
 The API key comes from LOBSTR_API_KEY (https://app.lobstr.io/dashboard/api); the catalog needs none.
 
 Examples:
   lobstr catalog google maps
-  lobstr run google_maps/places/search query="bakeries in Lyon" --limit 5 --fields name,phone
-  lobstr run google_maps/reviews/list place=ChIJc_459AHr9EcRd0ALc7vrjcI --all --max-records 100 --jsonl
+  lobstr run google_maps/places/search query="bakeries in Austin, TX" --limit 5 --fields name,phone
+  lobstr run google_maps/reviews/list place=ChIJCar0f49ZwokR6ozLV-dHNTE --all --max-records 100 --jsonl
 
 Docs: https://docs.lobstr.io . Catalog: https://api.lobstr.io/v2/catalog.md
 """
@@ -63,7 +63,7 @@ def parse_value(raw: str) -> Any:
 
 
 def parse_options(pairs: Iterable[str]) -> Dict[str, Any]:
-    """``key=value`` pairs to the options; dotted keys nest (``near.lat=45.76``)."""
+    """``key=value`` pairs to the options; dotted keys nest (``near.lat=30.27``)."""
     options: Dict[str, Any] = {}
     for pair in pairs:
         key, sep, raw = pair.partition("=")
@@ -145,7 +145,7 @@ def cmd_run(client: Lobstr, argv: Sequence[str], io: _Output) -> int:
     parser = _parser(
         "run",
         "Run an operation. Options are key=value: the value is read as JSON when it is valid "
-        'JSON (5, true, ["a","b"]), else as a string; dotted keys nest (near.lat=45.76).',
+        'JSON (5, true, ["a","b"]), else as a string; dotted keys nest (near.lat=30.27).',
     )
     parser.add_argument("operation", help="the full source/resource/verb")
     parser.add_argument("options", nargs="*", metavar="key=value", help="the operation's options")

@@ -4,6 +4,7 @@ import json
 import pytest
 
 from _helpers import API_KEY, Mock, client, envelope, error, ok
+from lobstrio import __version__
 from lobstrio._cli import UsageError, main, parse_options, parse_value
 
 OP = "google_news/articles/search"
@@ -252,7 +253,7 @@ def test_operation_balance_runs_feedback():
 
 
 def test_help_and_version():
-    assert cli(Mock(), "--version")[1] == "1.0.0\n"
+    assert cli(Mock(), "--version")[1] == f"{__version__}\n"
     code, out, _ = cli(Mock(), "--help")
     assert code == 0 and "lobstr run <source/resource/verb>" in out
     out, err = io.StringIO(), io.StringIO()

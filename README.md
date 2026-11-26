@@ -1,7 +1,7 @@
 # lobstrio
 
 The official Python SDK and CLI for [lobstr.io](https://www.lobstr.io)'s API v2: structured data from
-websites (Google Maps places and their reviews, Google News, Airbnb, Leboncoin, X and more), one call
+websites (Google Maps places and their reviews, Google News, Airbnb, realtor.com, X and more), one call
 per page, the same fields every time.
 
 ```bash
@@ -27,7 +27,7 @@ The catalog needs no key.
 from lobstrio import Lobstr
 
 client = Lobstr()
-run = client.run("google_maps/places/search", {"query": "bakeries in Lyon"}, limit=5)
+run = client.run("google_maps/places/search", {"query": "bakeries in Austin, TX"}, limit=5)
 
 print(run.status, run.count, run.cost["credits"], run.balance["credits"])
 for place in run.results:
@@ -48,7 +48,7 @@ A search or a list answers one page; `next` is the whole call for the following 
 page = run.next_page()  # None after the last page
 
 for review in client.iterate(
-    "google_maps/reviews/list", {"place": "ChIJc_459AHr9EcRd0ALc7vrjcI"}, max_records=100
+    "google_maps/reviews/list", {"place": "ChIJCar0f49ZwokR6ozLV-dHNTE"}, max_records=100
 ):
     print(review["rating"]["value"], review["text"])
 ```
@@ -62,9 +62,9 @@ Every operation is also a method, with its options as typed arguments and its re
 `TypedDict`, generated from the [OpenAPI](https://api.lobstr.io/v2/openapi.json):
 
 ```python
-run = client.google_maps.places.search(query="bakeries in Lyon", limit=5)
+run = client.google_maps.places.search(query="bakeries in Austin, TX", limit=5)
 for place in client.google_maps.reviews.list.iterate(
-    place="ChIJc_459AHr9EcRd0ALc7vrjcI", max_records=50
+    place="ChIJCar0f49ZwokR6ozLV-dHNTE", max_records=50
 ):
     ...
 
@@ -78,8 +78,8 @@ An operation that answers one record (a get, a check) takes no `limit` and has n
 ```python
 results = client.run_many(
     [
-        {"operation": "google_maps/places/search", "options": {"query": "bakeries in Lyon"}},
-        {"operation": "google_maps/places/search", "options": {"query": "bakeries in Paris"}},
+        {"operation": "google_maps/places/search", "options": {"query": "bakeries in Austin, TX"}},
+        {"operation": "google_maps/places/search", "options": {"query": "bakeries in Dallas, TX"}},
     ],
     concurrency=4,
 )
@@ -128,8 +128,8 @@ least its `timeout_s` plus 30 s.
 ## The CLI
 
 ```bash
-lobstr run google_maps/places/search query="bakeries in Lyon" near.lat=45.76 near.lng=4.83 --limit 5 --fields name,phone
-lobstr run google_maps/reviews/list place=ChIJc_459AHr9EcRd0ALc7vrjcI --all --max-records 50 --jsonl
+lobstr run google_maps/places/search query="bakeries in Austin, TX" near.lat=30.27 near.lng=-97.74 --limit 5 --fields name,phone
+lobstr run google_maps/reviews/list place=ChIJCar0f49ZwokR6ozLV-dHNTE --all --max-records 50 --jsonl
 lobstr catalog maps
 lobstr operation google_maps/places/search
 lobstr balance
@@ -143,6 +143,58 @@ piped; `--jsonl` prints the records only, one a line. `--all` follows every page
 records as one array; `--max-records` stops it (and implies it). On a terminal, a line on stderr says
 what the call cost. An API error prints its message and `doc_url` on stderr and exits with 1; a
 mistake in the command line exits with 2.
+
+## Agent frameworks
+
+The tools of lobstr.io's [MCP server](https://github.com/lobstrio/lobstr-mcp), for an agent written
+in Python: `lobstr_find_operations` (the operations that fit a need, with their price),
+`lobstr_get_operation` (one's options and record fields) and `lobstr_run_operation` (one call, one
+page; `next` to go on). `operations=[...]` adds a tool per operation, named
+`google_maps_places_search`, its arguments the operation's options plus `fields` (and `limit` for a
+search or a list). Each tool answers compact JSON; an API error comes back to the agent as text, with
+its `doc_url`, not as an exception. The catalog is read once; a call costs its operation's credits.
+
+LangChain (Python 3.11 or later):
+
+```bash
+pip install "lobstrio[langchain]" langchain langchain-anthropic
+```
+
+```python
+from langchain.agents import create_agent
+from lobstrio.langchain import LobstrToolkit
+
+tools = LobstrToolkit(operations=["google_maps/places/search"]).get_tools()
+agent = create_agent("anthropic:claude-sonnet-5-5", tools)
+agent.invoke({"messages": [{"role": "user", "content": "Five dentists in Austin, TX, with their phone"}]})
+```
+
+CrewAI (Python 3.10 to 3.13):
+
+```bash
+pip install "lobstrio[crewai]"
+```
+
+```python
+from crewai import Agent, Crew, Task
+from lobstrio.crewai import lobstr_tools
+
+analyst = Agent(
+    role="News analyst",
+    goal="Say what the news says about a brand",
+    backstory="You read the news for a living.",
+    tools=lobstr_tools(operations=["google_news/articles/search"]),
+)
+task = Task(
+    description="What does the news say about Tesla this week?",
+    expected_output="Five bullet points, each with its source",
+    agent=analyst,
+)
+Crew(agents=[analyst], tasks=[task]).kickoff()
+```
+
+Both take `client=Lobstr(...)` for a key or settings of your own. More, with the OpenAI Agents SDK
+too: [lobstrio/examples](https://github.com/lobstrio/examples).
 
 ## Links
 
