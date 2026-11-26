@@ -185,7 +185,7 @@ class AsyncCatalog:
 
 
 class Accounts:
-    """Your accounts on the sites whose operations need one (``x``, ``leboncoin``...)."""
+    """Your accounts on the sites whose operations need one (``x``, ``sales_navigator``...)."""
 
     def __init__(self, client: "Lobstr") -> None:
         self._client = client
@@ -230,7 +230,7 @@ class Accounts:
 
 
 class AsyncAccounts:
-    """Your accounts on the sites whose operations need one (``x``, ``leboncoin``...)."""
+    """Your accounts on the sites whose operations need one (``x``, ``sales_navigator``...)."""
 
     def __init__(self, client: "AsyncLobstr") -> None:
         self._client = client

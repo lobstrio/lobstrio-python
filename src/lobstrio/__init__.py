@@ -3,7 +3,7 @@
     from lobstrio import Lobstr
 
     client = Lobstr()  # the key from LOBSTR_API_KEY
-    run = client.run("google_maps/places/search", {"query": "bakeries in Lyon"})
+    run = client.run("google_maps/places/search", {"query": "bakeries in Austin, TX"})
     print(run.cost["credits"], run.results[0]["name"])
 
 Docs: https://docs.lobstr.io
