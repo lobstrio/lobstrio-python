@@ -1,0 +1,74 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "lobstrio"
+dynamic = ["version"]
+description = "The official Python SDK and CLI for lobstr.io's API v2: structured data from websites, one call per page."
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.9"
+authors = [{ name = "LOBSTR SAS" }]
+keywords = ["lobstr.io", "api", "sdk", "scraping", "web data", "google maps"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+dependencies = ["httpx>=0.23,<1"]
+
+[project.optional-dependencies]
+# ruff is pinned: it formats the generated module, which must come out the same everywhere.
+dev = ["pytest>=7", "ruff==0.17.6", "build>=1"]
+
+[project.urls]
+Homepage = "https://www.lobstr.io"
+Documentation = "https://docs.lobstr.io"
+Repository = "https://github.com/lobstrio/lobstrio-python"
+Changelog = "https://github.com/lobstrio/lobstrio-python/blob/main/CHANGELOG.md"
+
+[project.scripts]
+lobstr = "lobstrio._cli:main"
+
+[tool.hatch.version]
+path = "src/lobstrio/_version.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/lobstrio"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/tests",
+    "/scripts",
+    "/README.md",
+    "/LICENSE",
+    "/CHANGELOG.md",
+    "/pyproject.toml",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+target-version = "py39"
+line-length = 100
+src = ["src", "tests", "scripts"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B"]
+# Line length is the formatter's: what it leaves long is a string.
+ignore = ["E501"]
