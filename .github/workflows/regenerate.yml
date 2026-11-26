@@ -1,10 +1,11 @@
 name: regenerate
 
-# Regenerates src/lobstrio/_generated.py from the live OpenAPI (https://api.lobstr.io/v2/openapi.json)
-# every day, and opens a pull request when it changed: new operations, options or fields. The
-# repository must allow GitHub Actions to create pull requests (Settings > Actions > General >
-# Workflow permissions). A pull request opened with GITHUB_TOKEN starts no workflow of its own: the
-# lint and the tests run here, before it is opened.
+# Regenerates src/lobstrio/_generated.py from the live OpenAPI (https://api.lobstr.io/v2/openapi.json) every day. When it changed
+# (new operations, options, fields or wording) and the lint and the tests pass on it, it releases it: a minor version
+# when operations were added, a patch otherwise (scripts/release_after_regenerate.py writes the version and the
+# CHANGELOG), committed to the default branch and tagged with the release deploy key (secret RELEASE_DEPLOY_KEY,
+# allowed past the branch's protection); the tag starts release.yml, which publishes. A new operation of the API
+# reaches the SDK's users the next morning, typed.
 
 on:
   schedule:
@@ -12,8 +13,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 concurrency:
   group: regenerate
@@ -22,10 +22,10 @@ concurrency:
 jobs:
   regenerate:
     runs-on: ubuntu-latest
-    env:
-      BRANCH: regenerate/openapi
     steps:
       - uses: actions/checkout@v4
+        with:
+          ssh-key: ${{ secrets.RELEASE_DEPLOY_KEY }}   # pushes and tags as the release key: its tag starts release.yml
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
@@ -44,28 +44,13 @@ jobs:
       - name: Lint and test the new output
         if: steps.diff.outputs.changed == 'true'
         run: ruff check . && pytest
-      - name: Open or update the pull request
+      - name: Release it
         if: steps.diff.outputs.changed == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          BASE: ${{ github.event.repository.default_branch }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -B "$BRANCH"
-          git add src/lobstrio/_generated.py
-          git commit -m "Regenerate from the live OpenAPI"
-          git push --force origin "$BRANCH"
-          open="$(gh pr list --head "$BRANCH" --base "$BASE" --state open --json number --jq '.[0].number')"
-          if [ -z "$open" ]; then
-            {
-              echo "\`python scripts/generate.py\` from https://api.lobstr.io/v2/openapi.json changed \`src/lobstrio/_generated.py\`; lint and unit tests pass on it."
-              echo
-              echo '```'
-              git diff --stat HEAD~1 -- src/lobstrio/_generated.py
-              echo '```'
-            } > body.md
-            gh pr create --head "$BRANCH" --base "$BASE" --title "Regenerate from the live OpenAPI" --body-file body.md
-          else
-            echo "Pull request #$open updated."
-          fi
+          version="$(python3 scripts/release_after_regenerate.py)"
+          git config user.name "lobstr.io"
+          git config user.email "contact@lobstr.io"
+          git commit -qam "Regenerate from the live OpenAPI: v$version"
+          git tag "v$version"
+          git push origin HEAD:${{ github.event.repository.default_branch }} "v$version"
+          echo "Released v$version: release.yml publishes it."
