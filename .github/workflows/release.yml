@@ -1,0 +1,75 @@
+name: release
+
+# On a tag v*: build, test, publish to PyPI by trusted publishing (the `pypi` environment, no token),
+# then a GitHub release with the notes of CHANGELOG.md. PyPI must trust this repository and workflow
+# (pypi.org > lobstrio > Publishing: owner lobstrio, repository lobstrio-python, workflow release.yml,
+# environment pypi).
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: pip install -e ".[dev]"
+      - name: The tag is the package's version
+        run: |
+          version="$(python -c 'import lobstrio; print(lobstrio.__version__)')"
+          if [ "${GITHUB_REF_NAME#v}" != "$version" ]; then
+            echo "The tag $GITHUB_REF_NAME does not match the package's version $version." >&2
+            exit 1
+          fi
+      - run: ruff check .
+      - run: pytest
+      - run: python -m build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/lobstrio/
+    permissions:
+      id-token: write # trusted publishing
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+
+  github-release:
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - name: GitHub release, its notes from CHANGELOG.md
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          awk -v v="$version" '/^## /{p = ($2 == v || $2 == "[" v "]"); next} p' CHANGELOG.md > notes.md
+          if [ -s notes.md ]; then
+            gh release create "$GITHUB_REF_NAME" dist/* --title "$GITHUB_REF_NAME" --notes-file notes.md
+          else
+            gh release create "$GITHUB_REF_NAME" dist/* --title "$GITHUB_REF_NAME" --generate-notes
+          fi
