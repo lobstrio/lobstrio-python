@@ -855,7 +855,7 @@ class _RunLogRequired(TypedDict):
     object: Literal["run"]
     id: str
     created_at: str
-    via: Literal["api", "mcp", "app"]
+    via: Literal["api", "mcp", "app", "sdk"]
     source: str
     operation: str
     status: Literal["succeeded", "failed"]

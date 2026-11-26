@@ -295,7 +295,7 @@ class Runs:
     ) -> RunLogPage:
         """One page of your calls, newest first (``limit`` 1 to 100, 20 by default).
 
-        ``status`` is ``succeeded`` or ``failed``; ``via`` is ``api``, ``mcp`` or ``app``; dates
+        ``status`` is ``succeeded`` or ``failed``; ``via`` is ``api``, ``mcp``, ``app`` or ``sdk``; dates
         are UTC (a naive datetime is read as UTC).
         """
         params = _run_filters(
@@ -363,7 +363,7 @@ class AsyncRuns:
     ) -> AsyncRunLogPage:
         """One page of your calls, newest first (``limit`` 1 to 100, 20 by default).
 
-        ``status`` is ``succeeded`` or ``failed``; ``via`` is ``api``, ``mcp`` or ``app``; dates
+        ``status`` is ``succeeded`` or ``failed``; ``via`` is ``api``, ``mcp``, ``app`` or ``sdk``; dates
         are UTC (a naive datetime is read as UTC).
         """
         params = _run_filters(
