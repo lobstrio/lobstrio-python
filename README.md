@@ -1,5 +1,11 @@
 # lobstrio
 
+[![PyPI](https://img.shields.io/pypi/v/lobstrio?color=blue)](https://pypi.org/project/lobstrio/)
+[![Python](https://img.shields.io/pypi/pyversions/lobstrio)](https://pypi.org/project/lobstrio/)
+[![Downloads](https://img.shields.io/pypi/dm/lobstrio)](https://pypistats.org/packages/lobstrio)
+[![Tests](https://github.com/lobstrio/lobstrio-python/actions/workflows/test.yml/badge.svg)](https://github.com/lobstrio/lobstrio-python/actions/workflows/test.yml)
+[![License](https://img.shields.io/github/license/lobstrio/lobstrio-python)](LICENSE)
+
 The official Python SDK and CLI for [lobstr.io](https://www.lobstr.io?utm_source=lobstrio-python&utm_medium=readme)'s API v2: structured data from
 websites (Google Maps places and their reviews, Google News, Airbnb, realtor.com, X and more), one call
 per page, the same fields every time.
