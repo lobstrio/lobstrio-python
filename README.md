@@ -144,6 +144,58 @@ records as one array; `--max-records` stops it (and implies it). On a terminal, 
 what the call cost. An API error prints its message and `doc_url` on stderr and exits with 1; a
 mistake in the command line exits with 2.
 
+## Agent frameworks
+
+The tools of lobstr.io's [MCP server](https://github.com/lobstrio/lobstr-mcp), for an agent written
+in Python: `lobstr_find_operations` (the operations that fit a need, with their price),
+`lobstr_get_operation` (one's options and record fields) and `lobstr_run_operation` (one call, one
+page; `next` to go on). `operations=[...]` adds a tool per operation, named
+`google_maps_places_search`, its arguments the operation's options plus `fields` (and `limit` for a
+search or a list). Each tool answers compact JSON; an API error comes back to the agent as text, with
+its `doc_url`, not as an exception. The catalog is read once; a call costs its operation's credits.
+
+LangChain (Python 3.11 or later):
+
+```bash
+pip install "lobstrio[langchain]" langchain langchain-anthropic
+```
+
+```python
+from langchain.agents import create_agent
+from lobstrio.langchain import LobstrToolkit
+
+tools = LobstrToolkit(operations=["google_maps/places/search"]).get_tools()
+agent = create_agent("anthropic:claude-sonnet-5-5", tools)
+agent.invoke({"messages": [{"role": "user", "content": "Five dentists in Austin, TX, with their phone"}]})
+```
+
+CrewAI (Python 3.10 to 3.13):
+
+```bash
+pip install "lobstrio[crewai]"
+```
+
+```python
+from crewai import Agent, Crew, Task
+from lobstrio.crewai import lobstr_tools
+
+analyst = Agent(
+    role="News analyst",
+    goal="Say what the news says about a brand",
+    backstory="You read the news for a living.",
+    tools=lobstr_tools(operations=["google_news/articles/search"]),
+)
+task = Task(
+    description="What does the news say about Tesla this week?",
+    expected_output="Five bullet points, each with its source",
+    agent=analyst,
+)
+Crew(agents=[analyst], tasks=[task]).kickoff()
+```
+
+Both take `client=Lobstr(...)` for a key or settings of your own. More, with the OpenAI Agents SDK
+too: [lobstrio/examples](https://github.com/lobstrio/examples).
+
 ## Links
 
 - Docs: https://docs.lobstr.io

@@ -11,7 +11,7 @@ license = "Apache-2.0"
 license-files = ["LICENSE"]
 requires-python = ">=3.9"
 authors = [{ name = "LOBSTR SAS" }]
-keywords = ["lobstr.io", "api", "sdk", "scraping", "web data", "google maps"]
+keywords = ["lobstr.io", "api", "sdk", "scraping", "web data", "google maps", "agents", "langchain", "crewai"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
@@ -31,6 +31,9 @@ classifiers = [
 dependencies = ["httpx>=0.23,<1"]
 
 [project.optional-dependencies]
+# The agent frameworks' tools: lobstrio.langchain (Python 3.11+) and lobstrio.crewai (3.10 to 3.13).
+langchain = ["langchain-core>=1.8.5,<2"]
+crewai = ["crewai>=1.15.45,<2"]
 # ruff is pinned: it formats the generated module, which must come out the same everywhere.
 dev = ["pytest>=7", "ruff==0.17.6", "build>=1"]
 
