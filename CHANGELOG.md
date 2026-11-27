@@ -4,6 +4,12 @@ All notable changes to `lobstrio`, the Python SDK and CLI of lobstr.io's API v2,
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] - 2026-11-27
+
+### Added
+
+- `yelp/reviews/list`: its typed method, options and record.
+
 ## [1.1.0] - 2026-11-26
 
 lobstr.io's tools for agent frameworks, in the package itself, as extras.
@@ -61,5 +67,6 @@ The SDK of the API v2. It replaces the archived v1 CLI published as `lobstrio` 0
 - `scripts/generate.py`, which writes `src/lobstrio/_generated.py` from the OpenAPI, joining back the
   descriptions the OpenAPI cuts at a comma.
 
+[1.2.0]: https://github.com/lobstrio/lobstrio-python/releases/tag/v1.2.0
 [1.1.0]: https://github.com/lobstrio/lobstrio-python/releases/tag/v1.1.0
 [1.0.0]: https://github.com/lobstrio/lobstrio-python/releases/tag/v1.0.0

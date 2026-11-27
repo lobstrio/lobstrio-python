@@ -697,10 +697,26 @@ __all__ = [
     "XTweetsSearchRecordSmartTagsItem",
     "XTweetsSearchRecordTimestampsItem",
     "XTweetsSearchRecordUrlsItem",
+    "YelpReviewsListOptions",
+    "YelpReviewsListOptionsSort",
+    "YelpReviewsListRecord",
+    "YelpReviewsListRecordAppreciatedBy",
+    "YelpReviewsListRecordBusiness",
+    "YelpReviewsListRecordPhotosItem",
+    "YelpReviewsListRecordPreviousReviewsItem",
+    "YelpReviewsListRecordRating",
+    "YelpReviewsListRecordReactions",
+    "YelpReviewsListRecordResponse",
+    "YelpReviewsListRecordResponseAuthor",
+    "YelpReviewsListRecordReviewer",
+    "YelpReviewsListRecordTags",
+    "YelpReviewsListRecordTranslation",
+    "YelpReviewsListRecordVideosItem",
+    "YelpReviewsListRecordVisit",
     "OPERATIONS",
 ]
 
-#: Every operation this module knows (41), as ``source/resource/verb``.
+#: Every operation this module knows (42), as ``source/resource/verb``.
 OPERATIONS: Tuple[str, ...] = (
     "airbnb/homes/get",
     "airbnb/homes/search",
@@ -743,6 +759,7 @@ OPERATIONS: Tuple[str, ...] = (
     "x/tweets/get",
     "x/tweets/list",
     "x/tweets/search",
+    "yelp/reviews/list",
 )
 
 _Fields = Union[str, Sequence[str], None]
@@ -10974,6 +10991,243 @@ class XTweetsSearchRecord(TypedDict):
     """When it was read, UTC."""
 
 
+# -- yelp/reviews/list
+
+
+YelpReviewsListOptionsSort = Literal[
+    "newest", "oldest", "highest_rated", "lowest_rated", "elites", "relevance"
+]
+
+
+class _YelpReviewsListOptionsRequired(TypedDict):
+    business: str
+    """The business: its page on Yelp, from any of its sites (yelp.com/biz/<name>, m.yelp.com,
+    yelp.ca...), or Yelp's id for it (22 letters and digits, as in
+    yelp.com/writeareview/biz/<id>). A page is read once for the id; an id goes straight to the
+    reviews. Examples:
+    "https://www.yelp.com/biz/doubletree-by-hilton-hotel-san-diego-del-mar-san-diego",
+    "0Q-AhbPLTo9z1rd-FJmpyQ".
+    """
+
+
+class YelpReviewsListOptions(_YelpReviewsListOptionsRequired, total=False):
+    """The options of ``yelp/reviews/list``."""
+
+    sort: YelpReviewsListOptionsSort
+    """The order of the list: newest or oldest written first; highest or lowest rated first (newest
+    first among equals); elites, the reviews of Yelp Elite members first; relevance, Yelp's own
+    order, its page's default. Default: "newest".
+    """
+    ratings: List[int]
+    """The reviews of these ratings only (any of them), as the list's Filter by rating. All when
+    not set. Examples: [1, 2].
+    """
+    language: str
+    """The language of the reviews listed: Yelp lists one at a time, by its two-letter code (en,
+    fr, es, de, it, ja...). A business with reviews in several languages is listed in each by
+    its own call. Default: "en". Examples: "fr".
+    """
+    translate_to: str
+    """A language to have each review translated into by Yelp (en, fr, es...): `translation` holds
+    it, the text stays as written. None when not set. Examples: "en".
+    """
+    query: str
+    """A word or a few to search the reviews for, as the list's Search reviews box (pool).
+    Examples: "pool".
+    """
+    cursor: str
+    """Where to go on, from `next` in an answer, as it is: opaque, and only for the business, sort
+    and filters it was given with (otherwise `invalid_cursor`).
+    """
+
+
+class YelpReviewsListRecordBusiness(TypedDict, total=False):
+    """The business reviewed."""
+
+    id: Optional[str]
+    """Yelp's id for it: pass it as `business` to skip reading its page."""
+    alias: Optional[str]
+    """Its name in its address (yelp.com/biz/<alias>)."""
+    name: Optional[str]
+    url: Optional[str]
+
+
+class YelpReviewsListRecordRating(TypedDict, total=False):
+    value: Optional[int]
+    scale: Literal[5]
+
+
+class YelpReviewsListRecordTranslation(TypedDict, total=False):
+    """Yelp's translation, when `translate_to` asked one and the review is in another language;
+    else null.
+    """
+
+    language: Optional[str]
+    text: Optional[str]
+
+
+class YelpReviewsListRecordVisit(TypedDict, total=False):
+    """When the reviewer came, as they said it on Yelp: a month. Null when they did not say."""
+
+    year: Optional[int]
+    month: Optional[int]
+
+
+class YelpReviewsListRecordReactions(TypedDict, total=False):
+    """Readers' reactions to it, as the buttons under it count them."""
+
+    helpful: int
+    thanks: int
+    love_this: int
+    oh_no: int
+
+
+class YelpReviewsListRecordPhotosItem(TypedDict, total=False):
+    id: Optional[str]
+    url: Optional[str]
+    """The photo as posted, at its full size."""
+    width: Optional[int]
+    height: Optional[int]
+    caption: Optional[str]
+    labels: List[str]
+    """What Yelp sees in it: shows storefront..."""
+    created_at: Optional[str]
+    likes: int
+
+
+class YelpReviewsListRecordVideosItem(TypedDict, total=False):
+    id: Optional[str]
+    url: Optional[str]
+    """The video at its highest quality (MP4)."""
+    thumbnail_url: Optional[str]
+    caption: Optional[str]
+    duration_ms: Optional[int]
+    created_at: Optional[str]
+    likes: int
+
+
+class YelpReviewsListRecordTags(TypedDict, total=False):
+    """What Yelp says of the review and its writer at the business."""
+
+    first_to_review: bool
+    """The first review of the business on Yelp."""
+    check_ins: int
+    """The reviewer's check-ins there with Yelp's app."""
+    paid_through_yelp: bool
+    purchased_deal: bool
+    """They bought a deal of the business on Yelp."""
+    placed_reservation: bool
+    """They booked through Yelp."""
+    review_of_the_day: Optional[str]
+    """The day Yelp made it its Review of the Day."""
+
+
+class YelpReviewsListRecordResponseAuthor(TypedDict, total=False):
+    id: Optional[str]
+    name: Optional[str]
+    role: Optional[str]
+    """owner or manager, as Yelp knows them."""
+    photo_url: Optional[str]
+
+
+class YelpReviewsListRecordResponse(TypedDict, total=False):
+    """The business's public response; null when there is none."""
+
+    id: Optional[str]
+    text: Optional[str]
+    created_at: Optional[str]
+    author: YelpReviewsListRecordResponseAuthor
+
+
+class YelpReviewsListRecordAppreciatedBy(TypedDict, total=False):
+    """Who at the business thanked the reviewer for it on Yelp; null when nobody did."""
+
+    id: Optional[str]
+    name: Optional[str]
+    role: Optional[str]
+    """owner or manager."""
+
+
+class YelpReviewsListRecordReviewer(TypedDict, total=False):
+    id: Optional[str]
+    name: Optional[str]
+    """As Yelp shows it: a first name and an initial."""
+    location: Optional[str]
+    """Their city, as they gave it."""
+    profile_url: Optional[str]
+    photo_url: Optional[str]
+    review_count: Optional[int]
+    friend_count: Optional[int]
+    photo_count: Optional[int]
+    elite_year: Optional[int]
+    """The year they are Yelp Elite, when they are this year."""
+    elite_all_star: bool
+
+
+class YelpReviewsListRecordPreviousReviewsItem(TypedDict, total=False):
+    id: str
+    rating: Dict[str, Any]
+    text: Optional[str]
+    language: Optional[str]
+    translation: Optional[Dict[str, Any]]
+    created_at: Optional[str]
+    visit: Optional[Dict[str, Any]]
+    reactions: Dict[str, Any]
+    photos: List[Any]
+    videos: List[Any]
+    tags: Dict[str, Any]
+    response: Optional[Dict[str, Any]]
+    appreciated_by: Optional[Dict[str, Any]]
+
+
+class YelpReviewsListRecord(TypedDict):
+    """A record of ``yelp/reviews/list``. With ``fields``, only the fields asked come."""
+
+    object: Literal["review"]
+    id: str
+    """The review's id on Yelp."""
+    position: int
+    """Its rank in the list, across pages."""
+    business: YelpReviewsListRecordBusiness
+    """The business reviewed."""
+    rating: YelpReviewsListRecordRating
+    text: Optional[str]
+    """As written, line breaks kept."""
+    language: Optional[str]
+    """The language it is written in: en, fr, es..."""
+    translation: Optional[YelpReviewsListRecordTranslation]
+    """Yelp's translation, when `translate_to` asked one and the review is in another language;
+    else null.
+    """
+    created_at: Optional[str]
+    """When it was written, UTC."""
+    visit: Optional[YelpReviewsListRecordVisit]
+    """When the reviewer came, as they said it on Yelp: a month. Null when they did not say."""
+    reactions: YelpReviewsListRecordReactions
+    """Readers' reactions to it, as the buttons under it count them."""
+    photos: List[YelpReviewsListRecordPhotosItem]
+    """The photos the reviewer posted with it, at their full size."""
+    videos: List[YelpReviewsListRecordVideosItem]
+    """The videos the reviewer posted with it."""
+    tags: YelpReviewsListRecordTags
+    """What Yelp says of the review and its writer at the business."""
+    response: Optional[YelpReviewsListRecordResponse]
+    """The business's public response; null when there is none."""
+    appreciated_by: Optional[YelpReviewsListRecordAppreciatedBy]
+    """Who at the business thanked the reviewer for it on Yelp; null when nobody did."""
+    reviewer: Optional[YelpReviewsListRecordReviewer]
+    previous_reviews: List[YelpReviewsListRecordPreviousReviewsItem]
+    """The reviewer's earlier reviews of the business, which this one updates: newest first, each
+    as a review.
+    """
+    url: Optional[str]
+    """The review on the business's page."""
+    source_url: str
+    """The business's page on Yelp."""
+    observed_at: str
+    """When it was read, UTC."""
+
+
 # -- Lobstr's typed operations
 
 
@@ -15027,6 +15281,164 @@ class _XTweetsSearchOperation:
         return cast("Iterator[XTweetsSearchRecord]", records)
 
 
+class _YelpReviewsListOperation:
+    """``yelp/reviews/list``: One page of a Yelp business's reviews (a hotel, a restaurant, a
+    museum, a plumber...), 49 at most, each with its rating out of 5, text, photos and videos,
+    reactions, the reviewer and the business's response.
+    """
+
+    operation = "yelp/reviews/list"
+
+    def __init__(self, client: "Lobstr") -> None:
+        self._client = client
+
+    def __call__(
+        self,
+        *,
+        business: str,
+        sort: Optional[YelpReviewsListOptionsSort] = None,
+        ratings: Optional[List[int]] = None,
+        language: Optional[str] = None,
+        translate_to: Optional[str] = None,
+        query: Optional[str] = None,
+        cursor: Optional[str] = None,
+        fields: _Fields = None,
+        limit: Optional[int] = None,
+        timeout_s: Optional[int] = None,
+        idempotency_key: Optional[str] = None,
+    ) -> "Run[YelpReviewsListRecord]":
+        """One page of a Yelp business's reviews (a hotel, a restaurant, a museum, a plumber...),
+        49 at most, each with its rating out of 5, text, photos and videos, reactions, the
+        reviewer and the business's response.
+
+        Args:
+            business: The business: its page on Yelp, from any of its sites
+                (yelp.com/biz/<name>, m.yelp.com, yelp.ca...), or Yelp's id for it (22 letters and
+                digits, as in yelp.com/writeareview/biz/<id>). A page is read once for the id; an id
+                goes straight to the reviews. Examples:
+                "https://www.yelp.com/biz/doubletree-by-hilton-hotel-san-diego-del-mar-san-diego",
+                "0Q-AhbPLTo9z1rd-FJmpyQ".
+            sort: The order of the list: newest or oldest written first; highest or lowest rated
+                first (newest first among equals); elites, the reviews of Yelp Elite members first;
+                relevance, Yelp's own order, its page's default. Default: "newest".
+            ratings: The reviews of these ratings only (any of them), as the list's Filter by
+                rating. All when not set. Examples: [1, 2].
+            language: The language of the reviews listed: Yelp lists one at a time, by its
+                two-letter code (en, fr, es, de, it, ja...). A business with reviews in several
+                languages is listed in each by its own call. Default: "en". Examples: "fr".
+            translate_to: A language to have each review translated into by Yelp (en, fr,
+                es...): `translation` holds it, the text stays as written. None when not set.
+                Examples: "en".
+            query: A word or a few to search the reviews for, as the list's Search reviews box
+                (pool). Examples: "pool".
+            cursor: Where to go on, from `next` in an answer, as it is: opaque, and only for the
+                business, sort and filters it was given with (otherwise `invalid_cursor`).
+            fields: Only these fields of each record, by path (``name``, ``address.city``);
+                ``object``, ``id`` and ``position`` always come.
+            limit: Only the first 1 to 1,000 records of the page; the call costs the same.
+            timeout_s: The most seconds the API waits for the site, up to the operation's
+                maximum.
+            idempotency_key: Sent as ``Idempotency-Key``; a UUID4 when left out, kept across
+                retries.
+
+        Returns:
+            The answer, its records (``YelpReviewsListRecord``) in ``results``.
+                ``run.next_page()`` gives the following page; ``.iterate(...)`` every record.
+
+        The contract: https://api.lobstr.io/v2/catalog/yelp/reviews/list
+        """
+        run = self._client.run(
+            "yelp/reviews/list",
+            _options(
+                {
+                    "business": business,
+                    "sort": sort,
+                    "ratings": ratings,
+                    "language": language,
+                    "translate_to": translate_to,
+                    "query": query,
+                    "cursor": cursor,
+                }
+            ),
+            fields=fields,
+            limit=limit,
+            timeout_s=timeout_s,
+            idempotency_key=idempotency_key,
+        )
+        return cast("Run[YelpReviewsListRecord]", run)
+
+    def iterate(
+        self,
+        *,
+        business: str,
+        sort: Optional[YelpReviewsListOptionsSort] = None,
+        ratings: Optional[List[int]] = None,
+        language: Optional[str] = None,
+        translate_to: Optional[str] = None,
+        query: Optional[str] = None,
+        cursor: Optional[str] = None,
+        fields: _Fields = None,
+        limit: Optional[int] = None,
+        timeout_s: Optional[int] = None,
+        max_records: Optional[int] = None,
+        max_pages: Optional[int] = None,
+    ) -> "Iterator[YelpReviewsListRecord]":
+        """Every page's records of ``yelp/reviews/list``, following ``next`` until it is null or a
+        cap is hit.
+
+        Args:
+            business: The business: its page on Yelp, from any of its sites
+                (yelp.com/biz/<name>, m.yelp.com, yelp.ca...), or Yelp's id for it (22 letters and
+                digits, as in yelp.com/writeareview/biz/<id>). A page is read once for the id; an id
+                goes straight to the reviews. Examples:
+                "https://www.yelp.com/biz/doubletree-by-hilton-hotel-san-diego-del-mar-san-diego",
+                "0Q-AhbPLTo9z1rd-FJmpyQ".
+            sort: The order of the list: newest or oldest written first; highest or lowest rated
+                first (newest first among equals); elites, the reviews of Yelp Elite members first;
+                relevance, Yelp's own order, its page's default. Default: "newest".
+            ratings: The reviews of these ratings only (any of them), as the list's Filter by
+                rating. All when not set. Examples: [1, 2].
+            language: The language of the reviews listed: Yelp lists one at a time, by its
+                two-letter code (en, fr, es, de, it, ja...). A business with reviews in several
+                languages is listed in each by its own call. Default: "en". Examples: "fr".
+            translate_to: A language to have each review translated into by Yelp (en, fr,
+                es...): `translation` holds it, the text stays as written. None when not set.
+                Examples: "en".
+            query: A word or a few to search the reviews for, as the list's Search reviews box
+                (pool). Examples: "pool".
+            cursor: Where to go on, from `next` in an answer, as it is: opaque, and only for the
+                business, sort and filters it was given with (otherwise `invalid_cursor`).
+            fields: Only these fields of each record, by path (``name``, ``address.city``);
+                ``object``, ``id`` and ``position`` always come.
+            limit: Only the first 1 to 1,000 records of the page; the call costs the same.
+            timeout_s: The most seconds the API waits for the site, up to the operation's
+                maximum.
+            max_records: Stop after this many records.
+            max_pages: Stop after this many pages (each page is one call, at the operation's
+                price).
+        """
+        records = self._client.iterate(
+            "yelp/reviews/list",
+            _options(
+                {
+                    "business": business,
+                    "sort": sort,
+                    "ratings": ratings,
+                    "language": language,
+                    "translate_to": translate_to,
+                    "query": query,
+                    "cursor": cursor,
+                }
+            ),
+            max_records=max_records,
+            max_pages=max_pages,
+            fields=fields,
+            limit=limit,
+            timeout_s=timeout_s,
+        )
+        return cast("Iterator[YelpReviewsListRecord]", records)
+
+
 class _AirbnbHomesResource:
     """``airbnb/homes/...``"""
 
@@ -15466,6 +15878,24 @@ class _XSource:
         self.tweets = _XTweetsResource(client)
 
 
+class _YelpReviewsResource:
+    """``yelp/reviews/...``"""
+
+    list: _YelpReviewsListOperation
+
+    def __init__(self, client: "Lobstr") -> None:
+        self.list = _YelpReviewsListOperation(client)
+
+
+class _YelpSource:
+    """The operations on ``yelp``."""
+
+    reviews: _YelpReviewsResource
+
+    def __init__(self, client: "Lobstr") -> None:
+        self.reviews = _YelpReviewsResource(client)
+
+
 class SyncOperations:
     """The typed operations of ``Lobstr``, one attribute per source."""
 
@@ -15484,6 +15914,7 @@ class SyncOperations:
     tripadvisor: _TripadvisorSource
     websites: _WebsitesSource
     x: _XSource
+    yelp: _YelpSource
 
     def _init_operations(self) -> None:
         client = cast("Lobstr", self)
@@ -15502,6 +15933,7 @@ class SyncOperations:
         self.tripadvisor = _TripadvisorSource(client)
         self.websites = _WebsitesSource(client)
         self.x = _XSource(client)
+        self.yelp = _YelpSource(client)
 
 
 # -- AsyncLobstr's typed operations
@@ -19557,6 +19989,164 @@ class _AsyncXTweetsSearchOperation:
         return cast("AsyncIterator[XTweetsSearchRecord]", records)
 
 
+class _AsyncYelpReviewsListOperation:
+    """``yelp/reviews/list``: One page of a Yelp business's reviews (a hotel, a restaurant, a
+    museum, a plumber...), 49 at most, each with its rating out of 5, text, photos and videos,
+    reactions, the reviewer and the business's response.
+    """
+
+    operation = "yelp/reviews/list"
+
+    def __init__(self, client: "AsyncLobstr") -> None:
+        self._client = client
+
+    async def __call__(
+        self,
+        *,
+        business: str,
+        sort: Optional[YelpReviewsListOptionsSort] = None,
+        ratings: Optional[List[int]] = None,
+        language: Optional[str] = None,
+        translate_to: Optional[str] = None,
+        query: Optional[str] = None,
+        cursor: Optional[str] = None,
+        fields: _Fields = None,
+        limit: Optional[int] = None,
+        timeout_s: Optional[int] = None,
+        idempotency_key: Optional[str] = None,
+    ) -> "AsyncRun[YelpReviewsListRecord]":
+        """One page of a Yelp business's reviews (a hotel, a restaurant, a museum, a plumber...),
+        49 at most, each with its rating out of 5, text, photos and videos, reactions, the
+        reviewer and the business's response.
+
+        Args:
+            business: The business: its page on Yelp, from any of its sites
+                (yelp.com/biz/<name>, m.yelp.com, yelp.ca...), or Yelp's id for it (22 letters and
+                digits, as in yelp.com/writeareview/biz/<id>). A page is read once for the id; an id
+                goes straight to the reviews. Examples:
+                "https://www.yelp.com/biz/doubletree-by-hilton-hotel-san-diego-del-mar-san-diego",
+                "0Q-AhbPLTo9z1rd-FJmpyQ".
+            sort: The order of the list: newest or oldest written first; highest or lowest rated
+                first (newest first among equals); elites, the reviews of Yelp Elite members first;
+                relevance, Yelp's own order, its page's default. Default: "newest".
+            ratings: The reviews of these ratings only (any of them), as the list's Filter by
+                rating. All when not set. Examples: [1, 2].
+            language: The language of the reviews listed: Yelp lists one at a time, by its
+                two-letter code (en, fr, es, de, it, ja...). A business with reviews in several
+                languages is listed in each by its own call. Default: "en". Examples: "fr".
+            translate_to: A language to have each review translated into by Yelp (en, fr,
+                es...): `translation` holds it, the text stays as written. None when not set.
+                Examples: "en".
+            query: A word or a few to search the reviews for, as the list's Search reviews box
+                (pool). Examples: "pool".
+            cursor: Where to go on, from `next` in an answer, as it is: opaque, and only for the
+                business, sort and filters it was given with (otherwise `invalid_cursor`).
+            fields: Only these fields of each record, by path (``name``, ``address.city``);
+                ``object``, ``id`` and ``position`` always come.
+            limit: Only the first 1 to 1,000 records of the page; the call costs the same.
+            timeout_s: The most seconds the API waits for the site, up to the operation's
+                maximum.
+            idempotency_key: Sent as ``Idempotency-Key``; a UUID4 when left out, kept across
+                retries.
+
+        Returns:
+            The answer, its records (``YelpReviewsListRecord``) in ``results``. ``await
+                run.next_page()`` gives the following page; ``.iterate(...)`` every record.
+
+        The contract: https://api.lobstr.io/v2/catalog/yelp/reviews/list
+        """
+        run = await self._client.run(
+            "yelp/reviews/list",
+            _options(
+                {
+                    "business": business,
+                    "sort": sort,
+                    "ratings": ratings,
+                    "language": language,
+                    "translate_to": translate_to,
+                    "query": query,
+                    "cursor": cursor,
+                }
+            ),
+            fields=fields,
+            limit=limit,
+            timeout_s=timeout_s,
+            idempotency_key=idempotency_key,
+        )
+        return cast("AsyncRun[YelpReviewsListRecord]", run)
+
+    def iterate(
+        self,
+        *,
+        business: str,
+        sort: Optional[YelpReviewsListOptionsSort] = None,
+        ratings: Optional[List[int]] = None,
+        language: Optional[str] = None,
+        translate_to: Optional[str] = None,
+        query: Optional[str] = None,
+        cursor: Optional[str] = None,
+        fields: _Fields = None,
+        limit: Optional[int] = None,
+        timeout_s: Optional[int] = None,
+        max_records: Optional[int] = None,
+        max_pages: Optional[int] = None,
+    ) -> "AsyncIterator[YelpReviewsListRecord]":
+        """Every page's records of ``yelp/reviews/list`` (``async for``), following ``next`` until
+        it is null or a cap is hit.
+
+        Args:
+            business: The business: its page on Yelp, from any of its sites
+                (yelp.com/biz/<name>, m.yelp.com, yelp.ca...), or Yelp's id for it (22 letters and
+                digits, as in yelp.com/writeareview/biz/<id>). A page is read once for the id; an id
+                goes straight to the reviews. Examples:
+                "https://www.yelp.com/biz/doubletree-by-hilton-hotel-san-diego-del-mar-san-diego",
+                "0Q-AhbPLTo9z1rd-FJmpyQ".
+            sort: The order of the list: newest or oldest written first; highest or lowest rated
+                first (newest first among equals); elites, the reviews of Yelp Elite members first;
+                relevance, Yelp's own order, its page's default. Default: "newest".
+            ratings: The reviews of these ratings only (any of them), as the list's Filter by
+                rating. All when not set. Examples: [1, 2].
+            language: The language of the reviews listed: Yelp lists one at a time, by its
+                two-letter code (en, fr, es, de, it, ja...). A business with reviews in several
+                languages is listed in each by its own call. Default: "en". Examples: "fr".
+            translate_to: A language to have each review translated into by Yelp (en, fr,
+                es...): `translation` holds it, the text stays as written. None when not set.
+                Examples: "en".
+            query: A word or a few to search the reviews for, as the list's Search reviews box
+                (pool). Examples: "pool".
+            cursor: Where to go on, from `next` in an answer, as it is: opaque, and only for the
+                business, sort and filters it was given with (otherwise `invalid_cursor`).
+            fields: Only these fields of each record, by path (``name``, ``address.city``);
+                ``object``, ``id`` and ``position`` always come.
+            limit: Only the first 1 to 1,000 records of the page; the call costs the same.
+            timeout_s: The most seconds the API waits for the site, up to the operation's
+                maximum.
+            max_records: Stop after this many records.
+            max_pages: Stop after this many pages (each page is one call, at the operation's
+                price).
+        """
+        records = self._client.iterate(
+            "yelp/reviews/list",
+            _options(
+                {
+                    "business": business,
+                    "sort": sort,
+                    "ratings": ratings,
+                    "language": language,
+                    "translate_to": translate_to,
+                    "query": query,
+                    "cursor": cursor,
+                }
+            ),
+            max_records=max_records,
+            max_pages=max_pages,
+            fields=fields,
+            limit=limit,
+            timeout_s=timeout_s,
+        )
+        return cast("AsyncIterator[YelpReviewsListRecord]", records)
+
+
 class _AsyncAirbnbHomesResource:
     """``airbnb/homes/...``"""
 
@@ -19996,6 +20586,24 @@ class _AsyncXSource:
         self.tweets = _AsyncXTweetsResource(client)
 
 
+class _AsyncYelpReviewsResource:
+    """``yelp/reviews/...``"""
+
+    list: _AsyncYelpReviewsListOperation
+
+    def __init__(self, client: "AsyncLobstr") -> None:
+        self.list = _AsyncYelpReviewsListOperation(client)
+
+
+class _AsyncYelpSource:
+    """The operations on ``yelp``."""
+
+    reviews: _AsyncYelpReviewsResource
+
+    def __init__(self, client: "AsyncLobstr") -> None:
+        self.reviews = _AsyncYelpReviewsResource(client)
+
+
 class AsyncOperations:
     """The typed operations of ``AsyncLobstr``, one attribute per source."""
 
@@ -20014,6 +20622,7 @@ class AsyncOperations:
     tripadvisor: _AsyncTripadvisorSource
     websites: _AsyncWebsitesSource
     x: _AsyncXSource
+    yelp: _AsyncYelpSource
 
     def _init_operations(self) -> None:
         client = cast("AsyncLobstr", self)
@@ -20032,3 +20641,4 @@ class AsyncOperations:
         self.tripadvisor = _AsyncTripadvisorSource(client)
         self.websites = _AsyncWebsitesSource(client)
         self.x = _AsyncXSource(client)
+        self.yelp = _AsyncYelpSource(client)
